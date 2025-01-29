@@ -1238,7 +1238,7 @@ void GodotPhysicsServer2D::free(RID p_rid) {
 		body_set_space(p_rid, RID());
 
 		while (body->get_shape_count()) {
-			body->remove_shape(0);
+			body->remove_shape(body->get_shape_count() - 1);
 		}
 
 		body_owner.free(p_rid);
@@ -1250,7 +1250,7 @@ void GodotPhysicsServer2D::free(RID p_rid) {
 		area->set_space(nullptr);
 
 		while (area->get_shape_count()) {
-			area->remove_shape(0);
+			area->remove_shape(body->get_shape_count() - 1);
 		}
 
 		area_owner.free(p_rid);

@@ -30,6 +30,8 @@
 
 #include "register_types.h"
 
+#include "dither_noise.h"
+#include "texture_noise.h"
 #include "fastnoise_lite.h"
 #include "noise.h"
 #include "noise_texture_2d.h"
@@ -49,6 +51,8 @@ void initialize_noise_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(NoiseTexture2D);
 		GDREGISTER_ABSTRACT_CLASS(Noise);
 		GDREGISTER_CLASS(FastNoiseLite);
+		GDREGISTER_CLASS(TextureNoise);
+		GDREGISTER_CLASS(DitherNoise);
 		ClassDB::add_compatibility_class("NoiseTexture", "NoiseTexture2D");
 	}
 

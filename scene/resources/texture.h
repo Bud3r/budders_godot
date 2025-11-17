@@ -36,11 +36,11 @@
 #include "scene/resources/curve.h"
 
 class Texture : public Resource {
-	GDCLASS(Texture, Resource);
+	GDCLASS(Texture, Resource)
 };
 
 class Texture2D : public Texture {
-	GDCLASS(Texture2D, Texture);
+	GDCLASS(Texture2D, Texture)
 	OBJ_SAVE_TYPE(Texture2D); // Saves derived classes with common type so they can be interchanged.
 
 protected:
@@ -78,7 +78,7 @@ public:
 };
 
 class TextureLayered : public Texture {
-	GDCLASS(TextureLayered, Texture);
+	GDCLASS(TextureLayered, Texture)
 
 protected:
 	static void _bind_methods();
@@ -109,7 +109,7 @@ public:
 VARIANT_ENUM_CAST(TextureLayered::LayeredType)
 
 class Texture3D : public Texture {
-	GDCLASS(Texture3D, Texture);
+	GDCLASS(Texture3D, Texture)
 
 protected:
 	static void _bind_methods();

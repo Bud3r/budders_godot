@@ -16,8 +16,8 @@ class DitherNoise : public Noise {
 private:
 	Ref<Noise> dither_map_noise;
 	int seed = 0;
-	real_t range_max;
-	real_t range_min;
+	real_t range_max = 1;
+	real_t range_min = 0;
 
 public:
 	real_t get_range_max() const;

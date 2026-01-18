@@ -342,7 +342,7 @@ protected:
 	void _block() { data.blocked++; }
 	void _unblock() { data.blocked--; }
 
-	void _notification(int p_notification);
+	virtual void _notification(int p_notification);
 
 	virtual void _physics_interpolated_changed();
 

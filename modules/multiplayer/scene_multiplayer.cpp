@@ -589,7 +589,8 @@ Error SceneMultiplayer::object_configuration_add(Object *p_obj, Variant p_config
 	MultiplayerSynchronizer *sync = Object::cast_to<MultiplayerSynchronizer>(p_config.get_validated_object());
 	if (spawner) {
 		return replicator->on_spawn(p_obj, p_config);
-	} else if (sync) {
+	}
+	if (sync) {
 		return replicator->on_replication_start(p_obj, p_config);
 	}
 	return ERR_INVALID_PARAMETER;

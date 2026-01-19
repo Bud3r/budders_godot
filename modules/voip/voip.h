@@ -19,7 +19,6 @@ protected:
 	void _notification(int p_what) override;
 	NodePath get_audio_stream_player_path() const;
 	void set_audio_stream_player_path(const NodePath &value);
-	// void get_class_static();
 	static void _bind_methods();
 	GDVIRTUAL1(_send_buffer, PackedVector2Array)
 private:

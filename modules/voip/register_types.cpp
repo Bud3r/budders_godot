@@ -8,7 +8,7 @@ void initialize_voip_module(ModuleInitializationLevel p_level) {
 		return;
 	}
 
-	// GDREGISTER_CLASS(Voip)
+	GDREGISTER_CLASS(Voip)
 }
 
 void uninitialize_voip_module(ModuleInitializationLevel p_level) {

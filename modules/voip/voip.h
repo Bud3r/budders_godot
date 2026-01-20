@@ -18,17 +18,19 @@ protected:
 	void _send_buffer(const PackedVector2Array &audio_buffer);
 	void receive_buffer(const PackedVector2Array &audio_buffer) const;
 	void _notification(int p_what);
+	bool is_mute() const;
+	void set_mute(bool value);
 	NodePath get_audio_stream_player_path() const;
 	void set_audio_stream_player_path(const NodePath &value);
 	static void _bind_methods();
 	static StringName get_bus_name();
-	GDVIRTUAL1(_send_buffer, PackedVector2Array)
+	GDVIRTUAL1(_send_buffer, const PackedVector2Array&)
 
 private:
+	bool mute = false;
 	Ref<AudioStreamGenerator> audio_stream_generator;
 	Ref<AudioStreamGeneratorPlayback> audio_stream_generator_playback;
 	NodePath audio_stream_player_path;
 	Ref<AudioStreamMicrophone> audio_stream_microphone;
 	Ref<AudioEffectCapture> audio_effect_capture;
-	Ref<AudioEffectRecordInstance> audio_effect_record_instance;
 };

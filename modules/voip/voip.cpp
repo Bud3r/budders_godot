@@ -7,12 +7,16 @@
 #include "servers/audio/effects/audio_effect_capture.h"
 #include "servers/audio/effects/audio_effect_record.h"
 
+#include <iostream>
+
 
 Voip::Voip() {
 	audio_stream_microphone.instantiate();
 	audio_effect_capture.instantiate();
+	// audio_effect_capture->set_buffer_length(2.5f);
 	audio_stream_generator.instantiate();
-
+	// audio_stream_generator->set_buffer_length(2.5f);
+	set_process_internal(true);
 	Dictionary dictionary;
 	dictionary["rpc_mode"] = MultiplayerAPI::RPC_MODE_AUTHORITY;
 	dictionary["transfer_mode"] = MultiplayerPeer::TRANSFER_MODE_RELIABLE;
@@ -22,13 +26,17 @@ Voip::Voip() {
 }
 
 void Voip::update() {
-	if (!is_multiplayer_authority()) {
+	if (!is_multiplayer_authority() || mute) {
 		return;
 	}
 
 	if (audio_effect_capture->can_get_buffer(buffer_size)) {
 		PackedVector2Array audio_buffer = audio_effect_capture->get_buffer(buffer_size);
-		GDVIRTUAL_CALL(_send_buffer, audio_buffer);
+		if (GDVIRTUAL_IS_OVERRIDDEN(_send_buffer)) {
+			GDVIRTUAL_CALL(_send_buffer, audio_buffer);
+		} else {
+			_send_buffer(audio_buffer);
+		}
 		audio_effect_capture->clear_buffer();
 	}
 }
@@ -38,6 +46,11 @@ void Voip::_send_buffer(const PackedVector2Array &audio_buffer) {
 }
 
 void Voip::receive_buffer(const PackedVector2Array &audio_buffer) const {
+	if (mute) {
+		return;
+	}
+
+	// std::cout << String(audio_buffer[0]).utf8().get_data() << std::endl;
 	audio_stream_generator_playback->push_buffer(audio_buffer);
 }
 
@@ -57,22 +70,22 @@ void Voip::_notification(int p_what) {
 				bus_idx = audio_server->get_bus_count();
 				audio_server->add_bus();
 				audio_server->set_bus_name(bus_idx, bus_name);
+				audio_server->set_bus_mute(bus_idx, false);
 				audio_server->add_bus_effect(bus_idx, audio_effect_capture);
-				audio_server->set_bus_mute(bus_idx, true);
 			}
 
 			Node* node = get_node(audio_stream_player_path);
-			// AudioStreamPlayer* audio_stream_player = cast_to<AudioStreamPlayer>(node);
-			// AudioStreamPlayer2D* audio_stream_player_2d = cast_to<AudioStreamPlayer2D>(node);
-			// AudioStreamPlayer3D* audio_stream_player_3d = cast_to<AudioStreamPlayer3D>(node);
 
 			if (AudioStreamPlayer* audio_stream_player = cast_to<AudioStreamPlayer>(node)) {
 				if (is_multiplayer_authority()) {
 					audio_stream_player->set_stream(audio_stream_microphone);
 					audio_stream_player->set_bus(bus_name);
+					audio_stream_player->set_autoplay(true);
+					audio_stream_player->play();
 				}
 				else {
 					audio_stream_player->set_stream(audio_stream_generator);
+					audio_stream_player->set_autoplay(true);
 					audio_stream_player->play();
 					audio_stream_generator_playback = audio_stream_player->get_stream_playback();
 				}
@@ -80,6 +93,7 @@ void Voip::_notification(int p_what) {
 				if (is_multiplayer_authority()) {
 					audio_stream_player_2d->set_stream(audio_stream_microphone);
 					audio_stream_player_2d->set_bus(bus_name);
+					audio_stream_player_2d->play();
 				}
 				else {
 					audio_stream_player_2d->set_stream(audio_stream_generator);
@@ -90,6 +104,7 @@ void Voip::_notification(int p_what) {
 				if (is_multiplayer_authority()) {
 					audio_stream_player_3d->set_stream(audio_stream_microphone);
 					audio_stream_player_3d->set_bus(bus_name);
+					audio_stream_player_3d->play();
 				}
 				else {
 					audio_stream_player_3d->set_stream(audio_stream_generator);
@@ -113,6 +128,14 @@ void Voip::_notification(int p_what) {
 	}
 }
 
+bool Voip::is_mute() const {
+	return mute;
+}
+
+
+void Voip::set_mute(bool value) {
+	mute = value;
+}
 
 NodePath Voip::get_audio_stream_player_path() const {
 	return audio_stream_player_path;
@@ -128,7 +151,10 @@ void Voip::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("receive_buffer", "audio_buffer"), &Voip::receive_buffer);
 	ClassDB::bind_method(D_METHOD("set_audio_stream_player_path", "path"), &Voip::set_audio_stream_player_path);
 	ClassDB::bind_method(D_METHOD("get_audio_stream_player_path"), &Voip::get_audio_stream_player_path);
+	ClassDB::bind_method(D_METHOD("set_mute", "value"), &Voip::set_mute);
+	ClassDB::bind_method(D_METHOD("is_mute"), &Voip::is_mute);
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "audio_stream_player_path"), "set_audio_stream_player_path", "get_audio_stream_player_path");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mute"), "set_mute", "is_mute");
 	GDVIRTUAL_BIND(_send_buffer, "audio_buffer")
 }
 

@@ -3,6 +3,7 @@
 #include "servers/audio/audio_stream.h"
 #include "servers/audio/effects/audio_effect_capture.h"
 #include "servers/audio/effects/audio_effect_record.h"
+#include "servers/audio/effects/audio_effect_stereo_enhance.h"
 #include "servers/audio/effects/audio_stream_generator.h"
 
 const String bus_name = "VoipSender";
@@ -32,5 +33,6 @@ private:
 	Ref<AudioStreamGeneratorPlayback> audio_stream_generator_playback;
 	NodePath audio_stream_player_path;
 	Ref<AudioStreamMicrophone> audio_stream_microphone;
+	Ref<AudioEffectStereoEnhance> audio_effect_stereo_enhance;
 	Ref<AudioEffectCapture> audio_effect_capture;
 };

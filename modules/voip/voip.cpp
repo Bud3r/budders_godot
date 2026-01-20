@@ -13,9 +13,11 @@
 Voip::Voip() {
 	audio_stream_microphone.instantiate();
 	audio_effect_capture.instantiate();
-	// audio_effect_capture->set_buffer_length(2.5f);
+	audio_effect_stereo_enhance.instantiate();
+	audio_effect_stereo_enhance->set_pan_pullout(0.0f);
 	audio_stream_generator.instantiate();
-	// audio_stream_generator->set_buffer_length(2.5f);
+	audio_effect_capture->set_buffer_length(2.5f);
+	audio_stream_generator->set_buffer_length(2.5f);
 	set_process_internal(true);
 	Dictionary dictionary;
 	dictionary["rpc_mode"] = MultiplayerAPI::RPC_MODE_AUTHORITY;
@@ -70,7 +72,8 @@ void Voip::_notification(int p_what) {
 				bus_idx = audio_server->get_bus_count();
 				audio_server->add_bus();
 				audio_server->set_bus_name(bus_idx, bus_name);
-				audio_server->set_bus_mute(bus_idx, false);
+				audio_server->set_bus_mute(bus_idx, true);
+				audio_server->add_bus_effect(bus_idx, audio_effect_stereo_enhance);
 				audio_server->add_bus_effect(bus_idx, audio_effect_capture);
 			}
 

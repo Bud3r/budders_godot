@@ -738,21 +738,24 @@ ShaderLanguage::Token ShaderLanguage::_get_token() {
 						CASE_MAX,
 					} lut_case = CASE_ALL;
 
-					static bool suffix_lut[CASE_MAX][127];
-
-					if (!is_const_suffix_lut_initialized) {
-						is_const_suffix_lut_initialized = true;
-
+					// A static local's initializer runs once even when shaders compile on several threads.
+					struct SuffixLut {
+						bool table[CASE_MAX][127];
+					};
+					static const SuffixLut suffix_lut_data = [] {
+						SuffixLut lut = {};
 						for (int i = 0; i < 127; i++) {
 							char t = char(i);
 
-							suffix_lut[CASE_ALL][i] = t == '.' || t == 'x' || t == 'e' || t == 'f' || t == 'u' || t == '-' || t == '+';
-							suffix_lut[CASE_HEXA_PERIOD][i] = t == 'e' || t == 'f' || t == 'u';
-							suffix_lut[CASE_EXPONENT][i] = t == 'f' || t == '-' || t == '+';
-							suffix_lut[CASE_SIGN_AFTER_EXPONENT][i] = t == 'f';
-							suffix_lut[CASE_NONE][i] = false;
+							lut.table[CASE_ALL][i] = t == '.' || t == 'x' || t == 'e' || t == 'f' || t == 'u' || t == '-' || t == '+';
+							lut.table[CASE_HEXA_PERIOD][i] = t == 'e' || t == 'f' || t == 'u';
+							lut.table[CASE_EXPONENT][i] = t == 'f' || t == '-' || t == '+';
+							lut.table[CASE_SIGN_AFTER_EXPONENT][i] = t == 'f';
+							lut.table[CASE_NONE][i] = false;
 						}
-					}
+						return lut;
+					}();
+					const auto &suffix_lut = suffix_lut_data.table;
 
 					String str;
 					int i = 0;
@@ -3592,7 +3595,6 @@ const ShaderLanguage::BuiltinEntry ShaderLanguage::frag_only_func_defs[] = {
 	{ nullptr }
 };
 
-bool ShaderLanguage::is_const_suffix_lut_initialized = false;
 
 bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionInfo &p_function_info, OperatorNode *p_func, DataType *r_ret_type, StringName *r_ret_type_str, bool *r_is_custom_function) {
 	ERR_FAIL_COND_V(p_func->op != OP_CALL && p_func->op != OP_CONSTRUCT, false);

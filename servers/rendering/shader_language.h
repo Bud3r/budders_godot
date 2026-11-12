@@ -1202,7 +1202,6 @@ private:
 	static const BuiltinFuncConstArgs builtin_func_const_args[];
 	static const BuiltinEntry frag_only_func_defs[];
 
-	static bool is_const_suffix_lut_initialized;
 
 	Error _validate_precision(DataType p_type, DataPrecision p_precision);
 	bool _compare_datatypes(DataType p_datatype_a, String p_datatype_name_a, int p_array_size_a, DataType p_datatype_b, String p_datatype_name_b, int p_array_size_b);

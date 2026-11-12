@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include "core/os/mutex.h"
 #include "core/templates/pair.h"
 #include "servers/rendering/rendering_server_enums.h"
 #include "servers/rendering/shader_language.h"
@@ -110,6 +111,8 @@ public:
 	};
 
 private:
+	// Shaders compile on whichever thread loads them, and the parser and the state below are shared.
+	Mutex compile_mutex;
 	ShaderLanguage parser;
 
 	String _get_sampler_name(ShaderLanguage::TextureFilter p_filter, ShaderLanguage::TextureRepeat p_repeat);

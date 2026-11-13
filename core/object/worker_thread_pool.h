@@ -281,6 +281,7 @@ public:
 	static WorkerThreadPool *get_singleton() { return singleton; }
 	int get_thread_index() const;
 	TaskID get_caller_task_id() const;
+	String debug_dump();
 	GroupID get_caller_group_id() const;
 
 #ifdef THREADS_ENABLED

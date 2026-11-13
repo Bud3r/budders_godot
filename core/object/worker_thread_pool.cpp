@@ -631,6 +631,27 @@ void WorkerThreadPool::yield() {
 	}
 }
 
+String WorkerThreadPool::debug_dump() {
+	MutexLock lock(task_mutex);
+	int queued = 0, queued_low = 0;
+	for (SelfList<Task> *E = task_queue.first(); E; E = E->next()) {
+		queued++;
+	}
+	for (SelfList<Task> *E = low_priority_task_queue.first(); E; E = E->next()) {
+		queued_low++;
+	}
+	String s = vformat("wtp low_used=%d/%d queued=%d queued_low=%d threads:", low_priority_threads_used, max_low_priority_threads, queued, queued_low);
+	for (uint32_t i = 0; i < threads.size(); i++) {
+		const ThreadData &td = threads[i];
+		if (!td.current_task) {
+			continue;
+		}
+		s += vformat(" [%d task=%d low=%d awaiting=%s yield_over=%d]", i, (int64_t)td.current_task->self, td.current_task->low_priority ? 1 : 0,
+				td.awaited_task == nullptr ? "-" : (td.awaited_task == ThreadData::YIELDING ? "YIELD" : itos(td.awaited_task->self)), td.yield_is_over ? 1 : 0);
+	}
+	return s;
+}
+
 void WorkerThreadPool::notify_yield_over(TaskID p_task_id) {
 	MutexLock task_lock(task_mutex);
 	Task **taskp = tasks.getptr(p_task_id);

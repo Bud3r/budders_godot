@@ -332,6 +332,21 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 	ERR_FAIL_V_MSG(Ref<Resource>(), vformat("No loader found for resource: %s (expected type: %s)", p_path, !p_type_hint.is_empty() ? p_type_hint : "unknown"));
 }
 
+static bool _loader_trace_enabled() {
+	static int enabled = -1;
+	if (enabled == -1) {
+		enabled = OS::get_singleton()->get_environment("GODOT_LOADER_TRACE") == "1" ? 1 : 0;
+	}
+	return enabled == 1;
+}
+
+#define LOADER_TRACE(m_text)                                                                        \
+	if (_loader_trace_enabled()) {                                                                  \
+		fprintf(stderr, "[LT %llu] %s\n", (unsigned long long)OS::get_singleton()->get_ticks_msec(), \
+				String(m_text).utf8().get_data());                                                  \
+		fflush(stderr);                                                                             \
+	}
+
 // This implementation must allow re-entrancy for a task that started awaiting in a deeper stack frame.
 // The load task token must be manually re-referenced before this is called, which includes threaded runs.
 void ResourceLoader::_run_load_task(void *p_userdata) {
@@ -360,6 +375,7 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 			load_task.started_load = true;
 			load_task.thread_index = thread_index;
 		}
+		LOADER_TRACE(vformat("RUN thread=%d task=%d %s wait=%d", thread_index, (int64_t)WorkerThreadPool::get_singleton()->get_caller_task_id(), load_task.local_path, wait ? 1 : 0));
 	}
 
 	ThreadLoadTask *curr_load_task_backup = curr_load_task;
@@ -464,6 +480,18 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 				// We need to make sure we yield on our actual current task. If we are
 				// waiting we are certainly not the the task being ran.
 				yielders.push_back(WorkerThreadPool::get_singleton()->get_caller_task_id());
+				if (_loader_trace_enabled()) {
+					String waits;
+					for (const KeyValue<int, String> &E : thread_waiting_on) {
+						const ThreadLoadTask *t = thread_load_tasks.getptr(E.value);
+						waits += vformat(" %d->%s(st=%d started=%d on=%d task=%d)", E.key, E.value.get_file(), t ? (int)t->status : -1,
+								t ? (int)t->started_load : -1, t ? t->thread_index : -99, t ? (int64_t)t->task_id : -1);
+					}
+					LOADER_TRACE(vformat("YIELD thread=%d caller_task=%d for=%s (on=%d) via=%s (on=%d st=%d) waits:%s | %s", thread_index,
+							(int64_t)WorkerThreadPool::get_singleton()->get_caller_task_id(), load_task.local_path, load_task.thread_index,
+							waiting_on_task->local_path, waiting_on_task->thread_index, (int)waiting_on_task->status, waits,
+							WorkerThreadPool::get_singleton()->debug_dump()));
+				}
 			}
 
 			thread_load_mutex.unlock();
@@ -481,6 +509,7 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 				thread_load_mutex.lock();
 				yielders.erase(WorkerThreadPool::get_singleton()->get_caller_task_id());
 				status = load_task.status;
+				LOADER_TRACE(vformat("WAKE thread=%d for=%s st=%d", thread_index, load_task.local_path, (int)status));
 				thread_load_mutex.unlock();
 			} else if (wait) {
 				// Forward progress is being made, just wait for task completion.
@@ -662,6 +691,7 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 		thread_waiting_on[thread_index] = thread_waiting_on_backup;
 	}
 
+	LOADER_TRACE(vformat("DONE thread=%d %s st=%d yielders=%d", thread_index, load_task.local_path, (int)load_task.status, (int)yielders.size()));
 	for (int tid : yielders) {
 		// Thundering herd, but not really an issue in practice. The
 		// number of threads in the WorkerThreadPool is bound and

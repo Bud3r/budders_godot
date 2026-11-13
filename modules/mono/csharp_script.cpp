@@ -1172,10 +1172,10 @@ bool CSharpLanguage::setup_csharp_script_binding(CSharpScriptBinding &r_script_b
 
 	ERR_FAIL_NULL_V(strong_gchandle.value, false);
 
-	r_script_binding.inited = true;
 	r_script_binding.type_name = type_name;
 	r_script_binding.gchandle = MonoGCHandleData(strong_gchandle, gdmono::GCHandleType::STRONG_HANDLE);
 	r_script_binding.owner = p_object;
+	r_script_binding.inited = true;
 
 	// Tie managed to unmanaged
 	RefCounted *rc = Object::cast_to<RefCounted>(p_object);
@@ -1207,7 +1207,11 @@ void *CSharpLanguage::_instance_binding_create_callback(void *, void *p_instance
 		return (void *)match;
 	}
 
+	// The binding is visible to other threads as soon as this returns, before it is set up.
+	// A reference() or unreference() on another thread can then reach
+	// _instance_binding_reference_callback, which needs the owner.
 	CSharpScriptBinding script_binding;
+	script_binding.owner = (Object *)p_instance;
 
 	return (void *)csharp_lang->insert_script_binding((Object *)p_instance, script_binding);
 }

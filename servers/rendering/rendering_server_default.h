@@ -373,7 +373,11 @@ public:
 			for (int i = 0; i < p_surfaces.size(); i++) {
 				RSG::mesh_storage->mesh_add_surface(mesh, p_surfaces[i]);
 			}
-			RSG::scene->mesh_generate_pipelines(mesh, using_server_thread);
+			// A worker thread must not wait for the pipelines here. Its wait is collaborative, so while
+			// loading it can pick up another load task that needs a resource still half-loaded further
+			// down another worker's stack, and two workers then wait on each other forever.
+			bool on_worker_thread = WorkerThreadPool::get_singleton()->get_thread_index() != -1;
+			RSG::scene->mesh_generate_pipelines(mesh, using_server_thread || on_worker_thread);
 		} else {
 			command_queue.push(RSG::mesh_storage, &RendererMeshStorage::mesh_initialize, mesh);
 			command_queue.push(RSG::mesh_storage, &RendererMeshStorage::mesh_set_blend_shape_count, mesh, p_blend_shape_count);

@@ -1172,10 +1172,10 @@ bool CSharpLanguage::setup_csharp_script_binding(CSharpScriptBinding &r_script_b
 
 	ERR_FAIL_NULL_V(strong_gchandle.value, false);
 
-	r_script_binding.inited = true;
 	r_script_binding.type_name = type_name;
 	r_script_binding.gchandle = MonoGCHandleData(strong_gchandle, gdmono::GCHandleType::STRONG_HANDLE);
 	r_script_binding.owner = p_object;
+	r_script_binding.inited = true;
 
 	// Tie managed to unmanaged
 	RefCounted *rc = Object::cast_to<RefCounted>(p_object);
@@ -1197,6 +1197,82 @@ RBMap<Object *, CSharpScriptBinding>::Element *CSharpLanguage::insert_script_bin
 	return script_bindings.insert(p_object, p_script_binding);
 }
 
+// RC_OWNER_DIAG: temporary instrumentation, not part of the fix.
+static int rcowner_diag_env_int(const char *p_name) {
+	const char *v = getenv(p_name);
+	return v ? atoi(v) : 0;
+}
+
+static bool rcowner_diag_nofix() {
+	static int nofix = rcowner_diag_env_int("GODOT_RC_OWNER_NOFIX");
+	return nofix != 0;
+}
+
+static void rcowner_diag_stress(Object *p_object) {
+	Resource *res = Object::cast_to<Resource>(p_object);
+	if (!res) {
+		return;
+	}
+	static int us = rcowner_diag_env_int("GODOT_RC_OWNER_STRESS_US");
+	static int where = rcowner_diag_env_int("GODOT_RC_OWNER_STRESS_WHERE"); // 0 all, 1 main, 2 workers
+	if (us > 0 && (where == 0 || (where == 1) == Thread::is_main_thread())) {
+		OS::get_singleton()->delay_usec(us);
+	}
+}
+
+static void rcowner_diag_report(Object *p_owner, bool p_reference) {
+	static SafeNumeric<uint32_t> count;
+	uint32_t n = count.increment();
+	if (n > 50) {
+		return;
+	}
+	String what = "<null owner>";
+	if (p_owner) {
+		what = p_owner->get_class();
+		Resource *res = Object::cast_to<Resource>(p_owner);
+		if (res) {
+			what += " " + res->get_path();
+		}
+	}
+	fprintf(stderr, "RCOWNER_DIAG #%u %s before setup on %s (thread %llu, main=%d)\n", n,
+			p_reference ? "reference" : "unreference", what.utf8().get_data(),
+			(unsigned long long)Thread::get_caller_id(), Thread::is_main_thread() ? 1 : 0);
+	fflush(stderr);
+	const char *dumper = getenv("GODOT_RC_OWNER_STACKDUMP");
+	const char *symdir = getenv("GODOT_RC_OWNER_SYMDIR");
+	const char *out = getenv("GODOT_RC_OWNER_DUMPFILE");
+	if (n == 1 && dumper && symdir && out) {
+		String cmd = vformat("\"\"%s\" %d \"%s\" > \"%s\" 2>&1\"", dumper, OS::get_singleton()->get_process_id(), symdir, out);
+		system(cmd.utf8().get_data());
+		fprintf(stderr, "RCOWNER_DIAG stacks written to %s\n", out);
+		fflush(stderr);
+	}
+}
+
+static void rcowner_diag_fatal(Object *p_key, const CSharpScriptBinding &p_binding, bool p_reference) {
+	fprintf(stderr, "RCOWNER_FATAL %s key=%p owner=%p inited=%d gchandle=%p weak=%d thread=%llu main=%d\n",
+			p_reference ? "reference" : "unreference", (void *)p_key, (void *)p_binding.owner, p_binding.inited ? 1 : 0,
+			p_binding.gchandle.get_intptr().value, p_binding.gchandle.is_weak() ? 1 : 0,
+			(unsigned long long)Thread::get_caller_id(), Thread::is_main_thread() ? 1 : 0);
+	fflush(stderr);
+	if (p_key) {
+		RefCounted *rc = Object::cast_to<RefCounted>(p_key);
+		Resource *res = Object::cast_to<Resource>(p_key);
+		fprintf(stderr, "RCOWNER_FATAL key class=%s is_rc=%d refcount=%d path=%s\n", String(p_key->get_class_name()).utf8().get_data(),
+				rc ? 1 : 0, rc ? rc->get_reference_count() : -1, res ? res->get_path().utf8().get_data() : "");
+		fflush(stderr);
+	}
+	const char *dumper = getenv("GODOT_RC_OWNER_STACKDUMP");
+	const char *symdir = getenv("GODOT_RC_OWNER_SYMDIR");
+	const char *out = getenv("GODOT_RC_OWNER_DUMPFILE");
+	if (dumper && symdir && out) {
+		String cmd = vformat("\"\"%s\" %d \"%s\" > \"%s\" 2>&1\"", dumper, OS::get_singleton()->get_process_id(), symdir, out);
+		system(cmd.utf8().get_data());
+		fprintf(stderr, "RCOWNER_FATAL stacks written to %s\n", out);
+		fflush(stderr);
+	}
+}
+
 void *CSharpLanguage::_instance_binding_create_callback(void *, void *p_instance) {
 	CSharpLanguage *csharp_lang = CSharpLanguage::get_singleton();
 
@@ -1207,7 +1283,13 @@ void *CSharpLanguage::_instance_binding_create_callback(void *, void *p_instance
 		return (void *)match;
 	}
 
+	// The binding is visible to other threads as soon as this returns, before
+	// get_instance_binding_with_setup sets it up. A reference()/unreference() on another thread
+	// can call _instance_binding_reference_callback in that window, which needs the owner.
 	CSharpScriptBinding script_binding;
+	if (!rcowner_diag_nofix()) {
+		script_binding.owner = (Object *)p_instance;
+	}
 
 	return (void *)csharp_lang->insert_script_binding((Object *)p_instance, script_binding);
 }
@@ -1259,6 +1341,13 @@ GDExtensionBool CSharpLanguage::_instance_binding_reference_callback(void *p_tok
 	CSharpScriptBinding &script_binding = ((RBMap<Object *, CSharpScriptBinding>::Element *)p_binding)->get();
 
 	RefCounted *rc_owner = Object::cast_to<RefCounted>(script_binding.owner);
+
+	if (!script_binding.inited) {
+		rcowner_diag_report(script_binding.owner, p_reference);
+	}
+	if (!rc_owner) {
+		rcowner_diag_fatal(((RBMap<Object *, CSharpScriptBinding>::Element *)p_binding)->key(), script_binding, p_reference);
+	}
 
 #ifdef DEBUG_ENABLED
 	CRASH_COND(!rc_owner);
@@ -1341,6 +1430,7 @@ void *CSharpLanguage::get_instance_binding_with_setup(Object *p_object) {
 		CSharpScriptBinding &script_binding = ((RBMap<Object *, CSharpScriptBinding>::Element *)binding)->value();
 
 		if (!script_binding.inited) {
+			rcowner_diag_stress(p_object);
 			MutexLock lock(CSharpLanguage::get_singleton()->get_language_bind_mutex());
 
 			if (!script_binding.inited) { // Another thread may have set it up

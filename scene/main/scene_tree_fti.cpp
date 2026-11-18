@@ -282,6 +282,11 @@ void SceneTreeFTI::_create_depth_lists() {
 			Node3D *s = source_list[n];
 			s->data.fti_processed = false;
 
+			// Nothing in this branch uses the interpolated xform.
+			if (!s->data.fti_subtree_consumer_count) {
+				continue;
+			}
+
 			int32_t depth = s->_get_scene_tree_depth();
 
 			// This shouldn't happen, but wouldn't be terrible if it did.
@@ -468,6 +473,12 @@ void SceneTreeFTI::_update_dirty_nodes(Node *p_node, uint32_t p_current_half_fra
 #ifdef DEBUG_ENABLED
 	data.debug_node_count++;
 #endif
+
+	// Don't recurse into branches where nothing uses the interpolated xform.
+	// Node3D::get_global_transform_interpolated() computes it on demand there.
+	if (s && !s->data.fti_subtree_consumer_count) {
+		return;
+	}
 
 	// Don't recurse into hidden branches.
 	if (s && !s->data.visible) {

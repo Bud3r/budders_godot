@@ -869,6 +869,7 @@ RID Camera3D::get_pyramid_shape_rid() {
 #endif // PHYSICS_3D_DISABLED
 
 Camera3D::Camera3D() {
+	_set_fti_consumer();
 	camera = RenderingServer::get_singleton()->camera_create();
 	set_perspective(75.0, 0.05, 4000.0);
 	RenderingServer::get_singleton()->camera_set_cull_mask(camera, layers);

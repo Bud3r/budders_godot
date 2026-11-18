@@ -149,6 +149,9 @@ private:
 		bool fti_is_identity_xform : 1;
 		bool fti_processed : 1;
 
+		// Set on node types whose fti_update_servers_xform() uses the interpolated xform.
+		bool fti_consumer : 1;
+
 		RID visibility_parent;
 
 		Node3D *parent = nullptr;
@@ -158,6 +161,10 @@ private:
 		// an optimization for faster traversal.
 		LocalVector<Node3D *> node3d_children;
 		uint32_t index_in_parent = UINT32_MAX;
+
+		// FTI consumers in this branch (self and Node3D descendants).
+		// SceneTreeFTI does not traverse branches without any.
+		uint32_t fti_subtree_consumer_count = 0;
 
 		ClientPhysicsInterpolationData *client_physics_interpolation_data = nullptr;
 
@@ -189,8 +196,15 @@ private:
 	void _update_visibility_parent(bool p_update_root);
 	void _propagate_transform_changed_deferred();
 
+	void _fti_add_subtree_consumer();
+	void _fti_remove_subtree_consumer();
+	Transform3D _get_global_transform_interpolated_skipped_branch() const;
+
 protected:
 	_FORCE_INLINE_ void set_ignore_transform_notification(bool p_ignore) { data.ignore_notification = p_ignore; }
+
+	// Call from the constructor of node types that override fti_update_servers_xform().
+	void _set_fti_consumer() { data.fti_consumer = true; }
 
 	_FORCE_INLINE_ void _update_local_transform() const;
 	_FORCE_INLINE_ void _update_rotation_and_scale() const;

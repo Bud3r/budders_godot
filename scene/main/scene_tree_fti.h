@@ -163,6 +163,7 @@ public:
 
 	void set_enabled(Node *p_root, bool p_enabled);
 	bool is_enabled() const { return data.enabled; }
+	bool is_in_frame() const { return data.in_frame; }
 
 	void set_debug_next_frame() { data.periodic_debug_log = true; }
 

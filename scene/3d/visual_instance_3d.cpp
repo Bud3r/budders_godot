@@ -204,6 +204,7 @@ RID VisualInstance3D::get_base() const {
 
 VisualInstance3D::VisualInstance3D() {
 	_define_ancestry(AncestralClass::VISUAL_INSTANCE_3D);
+	_set_fti_consumer();
 
 	instance = RenderingServer::get_singleton()->instance_create();
 	RenderingServer::get_singleton()->instance_attach_object_instance_id(instance, get_instance_id());

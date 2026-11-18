@@ -165,6 +165,10 @@ void Node3D::_notification(int p_what) {
 				ERR_PRINT("Node3D ENTER_TREE detected without EXIT_TREE, recovering.");
 			}
 
+			if (data.fti_consumer) {
+				_fti_add_subtree_consumer();
+			}
+
 			if (data.top_level && !Engine::get_singleton()->is_editor_hint()) {
 				if (data.parent) {
 					if (!data.top_level) {
@@ -213,6 +217,10 @@ void Node3D::_notification(int p_what) {
 			notification(NOTIFICATION_EXIT_WORLD, true);
 			if (xform_change.in_list()) {
 				get_tree()->xform_change_list.remove(&xform_change);
+			}
+
+			if (data.fti_consumer) {
+				_fti_remove_subtree_consumer();
 			}
 
 			if (data.parent) {
@@ -390,6 +398,31 @@ void Node3D::fti_pump_xform() {
 	data.local_transform_prev = get_transform();
 }
 
+void Node3D::_fti_add_subtree_consumer() {
+	// SceneTreeFTI skipped the ancestors that had no consumer until now, so their cached interpolated xform is stale.
+	// Mid-frame, set what the frame start traversal would have given them. Otherwise the next traversal sets it.
+	const SceneTreeFTI &fti = get_tree()->get_scene_tree_fti();
+	bool in_frame = fti.is_enabled() && fti.is_in_frame();
+	for (Node3D *s = data.parent; s && !s->data.fti_subtree_consumer_count; s = s->data.parent) {
+		bool set = in_frame && s->is_visible_in_tree();
+		if (set) {
+			s->data.global_transform_interpolated = s->_get_global_transform_interpolated_skipped_branch();
+		}
+		s->data.fti_global_xform_interp_set = set;
+	}
+
+	for (Node3D *s = this; s; s = s->data.parent) {
+		s->data.fti_subtree_consumer_count++;
+	}
+}
+
+void Node3D::_fti_remove_subtree_consumer() {
+	for (Node3D *s = this; s; s = s->data.parent) {
+		DEV_ASSERT(s->data.fti_subtree_consumer_count > 0);
+		s->data.fti_subtree_consumer_count--;
+	}
+}
+
 void Node3D::fti_notify_node_changed(bool p_transform_changed) {
 	if (is_inside_tree()) {
 		get_tree()->get_scene_tree_fti().node_3d_notify_changed(*this, p_transform_changed);
@@ -531,6 +564,55 @@ Transform3D Node3D::_get_global_transform_interpolated(real_t p_interpolation_fr
 	return res;
 }
 
+// SceneTreeFTI does not traverse branches without consumers, nor hidden branches.
+// Compute the interpolated xform the way SceneTreeFTI would have, starting from the
+// lowest ancestor whose cached interpolated xform is kept up to date.
+Transform3D Node3D::_get_global_transform_interpolated_skipped_branch() const {
+	const Node3D **chain = (const Node3D **)alloca(sizeof(const Node3D *) * (_get_scene_tree_depth() + 1));
+	int32_t chain_size = 0;
+	int32_t first_cached = 0;
+
+	for (const Node3D *s = this; s; s = s->data.parent) {
+		chain[chain_size++] = s;
+		if (!s->data.visible || !s->data.fti_subtree_consumer_count) {
+			first_cached = chain_size;
+		}
+	}
+
+	Transform3D xform;
+	bool has_parent_xform = first_cached < chain_size;
+	if (has_parent_xform) {
+		const Node3D *cached = chain[first_cached];
+		xform = cached->data.fti_global_xform_interp_set ? cached->data.global_transform_interpolated : cached->get_global_transform();
+	}
+
+	real_t interpolation_fraction = Engine::get_singleton()->get_physics_interpolation_fraction();
+
+	for (int32_t n = first_cached - 1; n >= 0; n--) {
+		const Node3D *s = chain[n];
+
+		Transform3D local_interp;
+		if (s->is_physics_interpolated() && s->data.fti_on_tick_xform_list) {
+			TransformInterpolator::interpolate_transform_3d(s->data.local_transform_prev, s->get_transform(), local_interp, interpolation_fraction);
+		} else {
+			local_interp = s->get_transform();
+		}
+
+		if (s->data.top_level || !has_parent_xform) {
+			xform = local_interp;
+		} else if (!s->data.fti_is_identity_xform) {
+			xform = xform * local_interp;
+		}
+
+		if (s->data.disable_scale) {
+			xform.basis.orthonormalize();
+		}
+		has_parent_xform = true;
+	}
+
+	return xform;
+}
+
 // Visible nodes - get_global_transform_interpolated is cheap.
 // Invisible nodes - get_global_transform_interpolated is expensive, try to avoid.
 Transform3D Node3D::get_global_transform_interpolated() {
@@ -541,6 +623,10 @@ Transform3D Node3D::get_global_transform_interpolated() {
 	if (SceneTree::is_fti_enabled() && is_inside_tree() && !Engine::get_singleton()->is_in_physics_frame()) {
 		// Note that with SceneTreeFTI, we may want to calculate interpolated transform for a node
 		// with physics interpolation set to OFF, if it has a parent that is ON.
+
+		if (!data.fti_subtree_consumer_count) {
+			return _get_global_transform_interpolated_skipped_branch();
+		}
 
 		// Cheap case.
 		// We already pre-cache the visible_in_tree for VisualInstances, but NOT for Node3Ds, so we have to
@@ -1572,6 +1658,7 @@ Node3D::Node3D() :
 	data.fti_frame_xform_force_update = false;
 	data.fti_is_identity_xform = false;
 	data.fti_processed = false;
+	data.fti_consumer = false;
 
 #ifdef TOOLS_ENABLED
 	data.gizmos_requested = false;

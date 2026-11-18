@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="InputEventJoypadTouchpad" inherits="InputEvent" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Represents a finger on a joypad's touchpad.
+	</brief_description>
+	<description>
+		Sent when a finger touches, moves on, or leaves a joypad's touchpad, such as the one on a DualShock 4 or DualSense. Poll the same state with [method Input.get_joy_touchpad_finger_position].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="finger" type="int" setter="set_finger" getter="get_finger" default="0">
+			Which finger this is, counting from [code]0[/code].
+		</member>
+		<member name="position" type="Vector2" setter="set_position" getter="get_position" default="Vector2(0, 0)">
+			Where the finger is, from [code](0, 0)[/code] at the top left to [code](1, 1)[/code] at the bottom right.
+		</member>
+		<member name="pressed" type="bool" setter="set_pressed" getter="is_pressed" default="false">
+			[code]true[/code] while the finger touches the touchpad; [code]false[/code] in the event sent when it lifts.
+		</member>
+		<member name="pressure" type="float" setter="set_pressure" getter="get_pressure" default="0.0">
+			How hard the finger presses, from [code]0.0[/code] to [code]1.0[/code].
+		</member>
+		<member name="relative" type="Vector2" setter="set_relative" getter="get_relative" default="Vector2(0, 0)">
+			How far the finger moved since the previous event for it, in the same units as [member position].
+		</member>
+		<member name="touchpad" type="int" setter="set_touchpad" getter="get_touchpad" default="0">
+			Which touchpad the finger is on, counting from [code]0[/code].
+		</member>
+	</members>
+</class>

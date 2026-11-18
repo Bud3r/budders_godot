@@ -1348,6 +1348,83 @@ void InputEventJoypadButton::_bind_methods() {
 
 ///////////////////////////////////
 
+void InputEventJoypadTouchpad::set_touchpad(int p_touchpad) {
+	touchpad = p_touchpad;
+	emit_changed();
+}
+
+int InputEventJoypadTouchpad::get_touchpad() const {
+	return touchpad;
+}
+
+void InputEventJoypadTouchpad::set_finger(int p_finger) {
+	finger = p_finger;
+	emit_changed();
+}
+
+int InputEventJoypadTouchpad::get_finger() const {
+	return finger;
+}
+
+void InputEventJoypadTouchpad::set_position(const Vector2 &p_position) {
+	position = p_position;
+}
+
+Vector2 InputEventJoypadTouchpad::get_position() const {
+	return position;
+}
+
+void InputEventJoypadTouchpad::set_relative(const Vector2 &p_relative) {
+	relative = p_relative;
+}
+
+Vector2 InputEventJoypadTouchpad::get_relative() const {
+	return relative;
+}
+
+void InputEventJoypadTouchpad::set_pressure(float p_pressure) {
+	pressure = p_pressure;
+}
+
+float InputEventJoypadTouchpad::get_pressure() const {
+	return pressure;
+}
+
+void InputEventJoypadTouchpad::set_pressed(bool p_pressed) {
+	pressed = p_pressed;
+}
+
+String InputEventJoypadTouchpad::as_text() const {
+	return vformat(RTR("Joypad Touchpad %d Finger %d at (%.2f, %.2f)"), touchpad, finger, position.x, position.y);
+}
+
+String InputEventJoypadTouchpad::_to_string() {
+	return vformat("InputEventJoypadTouchpad: device=%d, touchpad=%d, finger=%d, position=%s, relative=%s, pressure=%.2f, pressed=%s", get_device(), touchpad, finger, String(position), String(relative), pressure, pressed ? "true" : "false");
+}
+
+void InputEventJoypadTouchpad::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_touchpad", "touchpad"), &InputEventJoypadTouchpad::set_touchpad);
+	ClassDB::bind_method(D_METHOD("get_touchpad"), &InputEventJoypadTouchpad::get_touchpad);
+	ClassDB::bind_method(D_METHOD("set_finger", "finger"), &InputEventJoypadTouchpad::set_finger);
+	ClassDB::bind_method(D_METHOD("get_finger"), &InputEventJoypadTouchpad::get_finger);
+	ClassDB::bind_method(D_METHOD("set_position", "position"), &InputEventJoypadTouchpad::set_position);
+	ClassDB::bind_method(D_METHOD("get_position"), &InputEventJoypadTouchpad::get_position);
+	ClassDB::bind_method(D_METHOD("set_relative", "relative"), &InputEventJoypadTouchpad::set_relative);
+	ClassDB::bind_method(D_METHOD("get_relative"), &InputEventJoypadTouchpad::get_relative);
+	ClassDB::bind_method(D_METHOD("set_pressure", "pressure"), &InputEventJoypadTouchpad::set_pressure);
+	ClassDB::bind_method(D_METHOD("get_pressure"), &InputEventJoypadTouchpad::get_pressure);
+	ClassDB::bind_method(D_METHOD("set_pressed", "pressed"), &InputEventJoypadTouchpad::set_pressed);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "touchpad"), "set_touchpad", "get_touchpad");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "finger"), "set_finger", "get_finger");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "position"), "set_position", "get_position");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "relative"), "set_relative", "get_relative");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "pressure"), "set_pressure", "get_pressure");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "pressed"), "set_pressed", "is_pressed");
+}
+
+///////////////////////////////////
+
 void InputEventScreenTouch::set_index(int p_index) {
 	index = p_index;
 }

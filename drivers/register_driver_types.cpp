@@ -38,6 +38,11 @@
 #include "drivers/accesskit/accessibility_server_accesskit.h"
 #endif
 
+#ifdef SDL_ENABLED
+#include "core/object/class_db.h"
+#include "drivers/sdl/hid_device_sdl.h"
+#endif
+
 static Ref<ImageLoaderPNG> image_loader_png;
 static Ref<ResourceSaverPNG> resource_saver_png;
 
@@ -62,6 +67,9 @@ void unregister_core_driver_types() {
 }
 
 void register_driver_types() {
+#ifdef SDL_ENABLED
+	GDREGISTER_CLASS(HIDDevice);
+#endif
 }
 
 void unregister_driver_types() {

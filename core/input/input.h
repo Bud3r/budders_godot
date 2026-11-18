@@ -88,6 +88,86 @@ public:
 	using MouseMode = InputClassEnums::MouseMode;
 	using CursorShape = InputClassEnums::CursorShape;
 
+	// Values match SDL_GamepadType.
+	enum JoypadType {
+		JOYPAD_TYPE_UNKNOWN,
+		JOYPAD_TYPE_STANDARD,
+		JOYPAD_TYPE_XBOX_360,
+		JOYPAD_TYPE_XBOX_ONE,
+		JOYPAD_TYPE_PS3,
+		JOYPAD_TYPE_PS4,
+		JOYPAD_TYPE_PS5,
+		JOYPAD_TYPE_SWITCH_PRO,
+		JOYPAD_TYPE_SWITCH_JOYCON_LEFT,
+		JOYPAD_TYPE_SWITCH_JOYCON_RIGHT,
+		JOYPAD_TYPE_SWITCH_JOYCON_PAIR,
+		JOYPAD_TYPE_MAX,
+	};
+
+	// Values match SDL_GamepadButtonLabel.
+	enum JoyButtonLabel {
+		JOY_BUTTON_LABEL_UNKNOWN,
+		JOY_BUTTON_LABEL_A,
+		JOY_BUTTON_LABEL_B,
+		JOY_BUTTON_LABEL_X,
+		JOY_BUTTON_LABEL_Y,
+		JOY_BUTTON_LABEL_CROSS,
+		JOY_BUTTON_LABEL_CIRCLE,
+		JOY_BUTTON_LABEL_SQUARE,
+		JOY_BUTTON_LABEL_TRIANGLE,
+	};
+
+	// Values match SDL_PowerState.
+	enum JoyPowerState {
+		JOY_POWER_STATE_ERROR = -1,
+		JOY_POWER_STATE_UNKNOWN,
+		JOY_POWER_STATE_ON_BATTERY,
+		JOY_POWER_STATE_NO_BATTERY,
+		JOY_POWER_STATE_CHARGING,
+		JOY_POWER_STATE_CHARGED,
+	};
+
+	// Values match SDL_JoystickConnectionState.
+	enum JoyConnectionState {
+		JOY_CONNECTION_INVALID = -1,
+		JOY_CONNECTION_UNKNOWN,
+		JOY_CONNECTION_WIRED,
+		JOY_CONNECTION_WIRELESS,
+	};
+
+	// Values match SDL_SensorType.
+	enum JoySensor {
+		JOY_SENSOR_ACCELEROMETER = 1,
+		JOY_SENSOR_GYROSCOPE,
+		JOY_SENSOR_ACCELEROMETER_LEFT,
+		JOY_SENSOR_GYROSCOPE_LEFT,
+		JOY_SENSOR_ACCELEROMETER_RIGHT,
+		JOY_SENSOR_GYROSCOPE_RIGHT,
+	};
+
+	enum JoyTriggerEffect {
+		JOY_TRIGGER_EFFECT_OFF,
+		JOY_TRIGGER_EFFECT_FEEDBACK,
+		JOY_TRIGGER_EFFECT_WEAPON,
+		JOY_TRIGGER_EFFECT_VIBRATION,
+	};
+
+	enum JoyForceEffect {
+		JOY_FORCE_EFFECT_CONSTANT,
+		JOY_FORCE_EFFECT_SINE,
+		JOY_FORCE_EFFECT_SQUARE,
+		JOY_FORCE_EFFECT_TRIANGLE,
+		JOY_FORCE_EFFECT_SAWTOOTH_UP,
+		JOY_FORCE_EFFECT_SAWTOOTH_DOWN,
+		JOY_FORCE_EFFECT_RAMP,
+		JOY_FORCE_EFFECT_SPRING,
+		JOY_FORCE_EFFECT_DAMPER,
+		JOY_FORCE_EFFECT_INERTIA,
+		JOY_FORCE_EFFECT_FRICTION,
+		JOY_FORCE_EFFECT_LEFT_RIGHT,
+		JOY_FORCE_EFFECT_MAX,
+	};
+
 	class JoypadFeatures {
 	public:
 		virtual ~JoypadFeatures() {}
@@ -95,10 +175,62 @@ public:
 		virtual bool has_joy_vibration() const { return false; }
 
 		virtual bool has_joy_light() const { return false; }
+		virtual bool has_joy_rgb_light() const { return false; }
 		virtual void set_joy_light(const Color &p_color) {}
 
 		virtual bool has_joy_motion_sensors() const { return false; }
 		virtual void set_joy_motion_sensors_enabled(bool p_enable) {}
+
+		virtual bool has_joy_trigger_vibration() const { return false; }
+		virtual void start_joy_trigger_vibration(float p_left, float p_right, float p_duration) {}
+
+		virtual bool send_joy_effect(const PackedByteArray &p_data) { return false; }
+		// Eight bytes of Switch rumble data: four for the left motor, four for the right.
+		virtual bool start_joy_hd_vibration(const uint8_t *p_rumble, float p_duration) { return false; }
+
+		virtual bool has_joy_player_lights() const { return false; }
+		virtual void set_joy_player_index(int p_index) {}
+		virtual int get_joy_player_index() const { return -1; }
+
+		virtual JoypadType get_joy_type(bool p_real) const { return JOYPAD_TYPE_UNKNOWN; }
+		virtual JoyButtonLabel get_joy_button_label(JoyButton p_button) const { return JOY_BUTTON_LABEL_UNKNOWN; }
+		virtual JoyPowerState get_joy_power_state(int &r_percent) const {
+			r_percent = -1;
+			return JOY_POWER_STATE_UNKNOWN;
+		}
+		virtual JoyConnectionState get_joy_connection_state() const { return JOY_CONNECTION_UNKNOWN; }
+		virtual TypedArray<Dictionary> get_joy_bindings() const { return TypedArray<Dictionary>(); }
+
+		virtual int get_joy_touchpad_count() const { return 0; }
+		virtual int get_joy_touchpad_finger_count(int p_touchpad) const { return 0; }
+		virtual bool get_joy_touchpad_finger(int p_touchpad, int p_finger, Vector2 &r_position, float &r_pressure) const { return false; }
+
+		virtual int get_joy_ball_count() const { return 0; }
+		virtual Vector2 get_joy_ball_motion(int p_ball) const { return Vector2(); }
+
+		virtual bool has_joy_sensor(JoySensor p_sensor) const { return false; }
+		virtual void set_joy_sensor_enabled(JoySensor p_sensor, bool p_enable) {}
+		virtual Vector3 get_joy_sensor_data(JoySensor p_sensor) const { return Vector3(); }
+
+		virtual bool has_joy_force_feedback() const { return false; }
+		virtual bool is_joy_force_effect_supported(JoyForceEffect p_effect) const { return false; }
+		virtual int create_joy_force_effect(JoyForceEffect p_effect, const Dictionary &p_params) { return -1; }
+		virtual bool update_joy_force_effect(int p_id, const Dictionary &p_params) { return false; }
+		virtual bool play_joy_force_effect(int p_id, int p_iterations) { return false; }
+		virtual void stop_joy_force_effect(int p_id) {}
+		virtual void destroy_joy_force_effect(int p_id) {}
+		virtual void stop_joy_force_effects() {}
+		virtual void set_joy_force_feedback_gain(float p_gain) {}
+		virtual void set_joy_force_feedback_autocenter(float p_autocenter) {}
+	};
+
+	// The joypad backend as a whole, for settings that are not per device.
+	class JoypadDriver {
+	public:
+		virtual ~JoypadDriver() {}
+
+		virtual bool set_hint(const String &p_name, const String &p_value) { return false; }
+		virtual String get_hint(const String &p_name) const { return String(); }
 	};
 
 	static constexpr int32_t JOYPADS_MAX = 16;
@@ -182,6 +314,9 @@ private:
 		float sensor_data_rate = 0.0f;
 		uint64_t last_timestamp = 0;
 		GamepadMotion *gamepad_motion = nullptr;
+		// Gyroscope rotation summed over every sample, in radians: pending since the last frame, and over the last frame.
+		Vector3 pending_rotation;
+		Vector3 frame_rotation;
 
 		MotionInfo() {
 			sensors_enabled = false;
@@ -222,6 +357,11 @@ private:
 		bool has_vibration = false;
 		Input::JoypadFeatures *features = nullptr;
 	};
+
+	JoypadDriver *joypad_driver = nullptr;
+	HashMap<String, String> pending_joy_driver_hints;
+
+	JoypadFeatures *_get_joy_features(int p_device) const;
 
 	VelocityTrack mouse_velocity_track;
 	HashMap<int, VelocityTrack> touch_velocity_track;
@@ -430,6 +570,58 @@ public:
 
 	void start_joy_vibration(int p_device, float p_weak_magnitude, float p_strong_magnitude, float p_duration = 0);
 	void stop_joy_vibration(int p_device);
+
+	bool has_joy_trigger_vibration(int p_device) const;
+	void start_joy_trigger_vibration(int p_device, float p_left_magnitude, float p_right_magnitude, float p_duration = 0);
+	void stop_joy_trigger_vibration(int p_device);
+
+	bool send_joy_effect(int p_device, const PackedByteArray &p_data);
+	bool has_joy_adaptive_triggers(int p_device) const;
+	bool set_joy_trigger_effect(int p_device, JoyAxis p_trigger, JoyTriggerEffect p_effect, float p_start = 0.0f, float p_end = 1.0f, float p_strength = 1.0f, float p_frequency = 0.0f);
+	bool has_joy_hd_vibration(int p_device) const;
+	bool start_joy_hd_vibration(int p_device, float p_low_frequency, float p_low_amplitude, float p_high_frequency, float p_high_amplitude, float p_duration = 0, bool p_left = true, bool p_right = true);
+
+	bool has_joy_rgb_light(int p_device) const;
+	bool has_joy_player_lights(int p_device) const;
+	void set_joy_player_index(int p_device, int p_index);
+	int get_joy_player_index(int p_device) const;
+
+	JoypadType get_joy_type(int p_device) const;
+	JoypadType get_joy_real_type(int p_device) const;
+	JoyButtonLabel get_joy_button_label(int p_device, JoyButton p_button) const;
+	JoyPowerState get_joy_power_state(int p_device) const;
+	int get_joy_battery_percent(int p_device) const;
+	JoyConnectionState get_joy_connection_state(int p_device) const;
+	TypedArray<Dictionary> get_joy_bindings(int p_device) const;
+
+	int get_joy_touchpad_count(int p_device) const;
+	int get_joy_touchpad_finger_count(int p_device, int p_touchpad) const;
+	bool is_joy_touchpad_finger_down(int p_device, int p_touchpad, int p_finger) const;
+	Vector2 get_joy_touchpad_finger_position(int p_device, int p_touchpad, int p_finger) const;
+	float get_joy_touchpad_finger_pressure(int p_device, int p_touchpad, int p_finger) const;
+
+	int get_joy_ball_count(int p_device) const;
+	Vector2 get_joy_ball_motion(int p_device, int p_ball) const;
+
+	Vector3 get_joy_gyroscope_rotation(int p_device) const;
+	bool has_joy_sensor(int p_device, JoySensor p_sensor) const;
+	void set_joy_sensor_enabled(int p_device, JoySensor p_sensor, bool p_enable);
+	Vector3 get_joy_sensor_data(int p_device, JoySensor p_sensor) const;
+
+	bool has_joy_force_feedback(int p_device) const;
+	bool is_joy_force_effect_supported(int p_device, JoyForceEffect p_effect) const;
+	int create_joy_force_effect(int p_device, JoyForceEffect p_effect, const Dictionary &p_params = Dictionary());
+	bool update_joy_force_effect(int p_device, int p_effect_id, const Dictionary &p_params);
+	bool play_joy_force_effect(int p_device, int p_effect_id, int p_iterations = 1);
+	int start_joy_force_effect(int p_device, JoyForceEffect p_effect, const Dictionary &p_params = Dictionary());
+	void stop_joy_force_effect(int p_device, int p_effect_id);
+	void destroy_joy_force_effect(int p_device, int p_effect_id);
+	void stop_joy_force_effects(int p_device);
+	void set_joy_force_feedback_gain(int p_device, float p_gain);
+	void set_joy_force_feedback_autocenter(int p_device, float p_autocenter);
+
+	bool set_joy_driver_hint(const String &p_name, const String &p_value);
+	String get_joy_driver_hint(const String &p_name) const;
 	void vibrate_handheld(int p_duration_ms = 500, float p_amplitude = -1.0);
 
 	void set_ignore_joypad_on_unfocused_application(bool p_ignore);
@@ -457,6 +649,12 @@ public:
 	void joy_axis(int p_device, JoyAxis p_axis, float p_value);
 	void joy_hat(int p_device, BitField<HatMask> p_val);
 	void joy_motion_sensors(int p_device, const Vector3 &p_accelerometer, const Vector3 &p_gyroscope);
+	// One sensor sample taken p_delta seconds after the previous one, for drivers that see every sample.
+	void joy_motion_sample(int p_device, const Vector3 &p_accelerometer, const Vector3 &p_gyroscope, float p_delta);
+	void joy_motion_frame(int p_device);
+	void set_joy_info_value(int p_device, const String &p_key, const Variant &p_value);
+	void set_joypad_driver(JoypadDriver *p_driver);
+	const HashMap<String, String> &get_pending_joy_driver_hints() const { return pending_joy_driver_hints; }
 
 	void add_joy_mapping(const String &p_mapping, bool p_update_existing = false);
 	void remove_joy_mapping(const String &p_guid);
@@ -491,3 +689,10 @@ public:
 
 VARIANT_ENUM_CAST(Input::MouseMode);
 VARIANT_ENUM_CAST(Input::CursorShape);
+VARIANT_ENUM_CAST(Input::JoypadType);
+VARIANT_ENUM_CAST(Input::JoyButtonLabel);
+VARIANT_ENUM_CAST(Input::JoyPowerState);
+VARIANT_ENUM_CAST(Input::JoyConnectionState);
+VARIANT_ENUM_CAST(Input::JoySensor);
+VARIANT_ENUM_CAST(Input::JoyTriggerEffect);
+VARIANT_ENUM_CAST(Input::JoyForceEffect);

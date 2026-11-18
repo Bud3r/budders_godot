@@ -368,6 +368,40 @@ public:
 	InputEventType get_type() const final override { return InputEventType::JOY_BUTTON; }
 };
 
+class InputEventJoypadTouchpad : public InputEvent {
+	GDCLASS(InputEventJoypadTouchpad, InputEvent);
+
+	int touchpad = 0;
+	int finger = 0;
+	Vector2 position; ///< 0 to 1 on each axis, from the top-left corner.
+	Vector2 relative;
+	float pressure = 0;
+
+protected:
+	static void _bind_methods();
+
+public:
+	void set_touchpad(int p_touchpad);
+	int get_touchpad() const;
+
+	void set_finger(int p_finger);
+	int get_finger() const;
+
+	void set_position(const Vector2 &p_position);
+	Vector2 get_position() const;
+
+	void set_relative(const Vector2 &p_relative);
+	Vector2 get_relative() const;
+
+	void set_pressure(float p_pressure);
+	float get_pressure() const;
+
+	void set_pressed(bool p_pressed);
+
+	virtual String as_text() const override;
+	virtual String _to_string() override;
+};
+
 class InputEventScreenTouch : public InputEventFromWindow {
 	GDCLASS(InputEventScreenTouch, InputEventFromWindow);
 	int index = 0;

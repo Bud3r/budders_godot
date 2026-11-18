@@ -185,6 +185,55 @@ void Input::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_gyroscope", "value"), &Input::set_gyroscope);
 	ClassDB::bind_method(D_METHOD("set_joy_light", "device", "color"), &Input::set_joy_light);
 	ClassDB::bind_method(D_METHOD("has_joy_light", "device"), &Input::has_joy_light);
+	ClassDB::bind_method(D_METHOD("has_joy_rgb_light", "device"), &Input::has_joy_rgb_light);
+	ClassDB::bind_method(D_METHOD("has_joy_player_lights", "device"), &Input::has_joy_player_lights);
+	ClassDB::bind_method(D_METHOD("set_joy_player_index", "device", "index"), &Input::set_joy_player_index);
+	ClassDB::bind_method(D_METHOD("get_joy_player_index", "device"), &Input::get_joy_player_index);
+
+	ClassDB::bind_method(D_METHOD("has_joy_trigger_vibration", "device"), &Input::has_joy_trigger_vibration);
+	ClassDB::bind_method(D_METHOD("start_joy_trigger_vibration", "device", "left_magnitude", "right_magnitude", "duration"), &Input::start_joy_trigger_vibration, DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("stop_joy_trigger_vibration", "device"), &Input::stop_joy_trigger_vibration);
+	ClassDB::bind_method(D_METHOD("send_joy_effect", "device", "data"), &Input::send_joy_effect);
+	ClassDB::bind_method(D_METHOD("has_joy_adaptive_triggers", "device"), &Input::has_joy_adaptive_triggers);
+	ClassDB::bind_method(D_METHOD("set_joy_trigger_effect", "device", "trigger", "effect", "start", "end", "strength", "frequency"), &Input::set_joy_trigger_effect, DEFVAL(0.0f), DEFVAL(1.0f), DEFVAL(1.0f), DEFVAL(0.0f));
+	ClassDB::bind_method(D_METHOD("has_joy_hd_vibration", "device"), &Input::has_joy_hd_vibration);
+	ClassDB::bind_method(D_METHOD("start_joy_hd_vibration", "device", "low_frequency", "low_amplitude", "high_frequency", "high_amplitude", "duration", "left", "right"), &Input::start_joy_hd_vibration, DEFVAL(0), DEFVAL(true), DEFVAL(true));
+
+	ClassDB::bind_method(D_METHOD("get_joy_type", "device"), &Input::get_joy_type);
+	ClassDB::bind_method(D_METHOD("get_joy_real_type", "device"), &Input::get_joy_real_type);
+	ClassDB::bind_method(D_METHOD("get_joy_button_label", "device", "button"), &Input::get_joy_button_label);
+	ClassDB::bind_method(D_METHOD("get_joy_power_state", "device"), &Input::get_joy_power_state);
+	ClassDB::bind_method(D_METHOD("get_joy_battery_percent", "device"), &Input::get_joy_battery_percent);
+	ClassDB::bind_method(D_METHOD("get_joy_connection_state", "device"), &Input::get_joy_connection_state);
+	ClassDB::bind_method(D_METHOD("get_joy_bindings", "device"), &Input::get_joy_bindings);
+
+	ClassDB::bind_method(D_METHOD("get_joy_touchpad_count", "device"), &Input::get_joy_touchpad_count);
+	ClassDB::bind_method(D_METHOD("get_joy_touchpad_finger_count", "device", "touchpad"), &Input::get_joy_touchpad_finger_count);
+	ClassDB::bind_method(D_METHOD("is_joy_touchpad_finger_down", "device", "touchpad", "finger"), &Input::is_joy_touchpad_finger_down);
+	ClassDB::bind_method(D_METHOD("get_joy_touchpad_finger_position", "device", "touchpad", "finger"), &Input::get_joy_touchpad_finger_position);
+	ClassDB::bind_method(D_METHOD("get_joy_touchpad_finger_pressure", "device", "touchpad", "finger"), &Input::get_joy_touchpad_finger_pressure);
+	ClassDB::bind_method(D_METHOD("get_joy_ball_count", "device"), &Input::get_joy_ball_count);
+	ClassDB::bind_method(D_METHOD("get_joy_ball_motion", "device", "ball"), &Input::get_joy_ball_motion);
+
+	ClassDB::bind_method(D_METHOD("get_joy_gyroscope_rotation", "device"), &Input::get_joy_gyroscope_rotation);
+	ClassDB::bind_method(D_METHOD("has_joy_sensor", "device", "sensor"), &Input::has_joy_sensor);
+	ClassDB::bind_method(D_METHOD("set_joy_sensor_enabled", "device", "sensor", "enable"), &Input::set_joy_sensor_enabled);
+	ClassDB::bind_method(D_METHOD("get_joy_sensor_data", "device", "sensor"), &Input::get_joy_sensor_data);
+
+	ClassDB::bind_method(D_METHOD("has_joy_force_feedback", "device"), &Input::has_joy_force_feedback);
+	ClassDB::bind_method(D_METHOD("is_joy_force_effect_supported", "device", "effect"), &Input::is_joy_force_effect_supported);
+	ClassDB::bind_method(D_METHOD("create_joy_force_effect", "device", "effect", "params"), &Input::create_joy_force_effect, DEFVAL(Dictionary()));
+	ClassDB::bind_method(D_METHOD("update_joy_force_effect", "device", "effect_id", "params"), &Input::update_joy_force_effect);
+	ClassDB::bind_method(D_METHOD("play_joy_force_effect", "device", "effect_id", "iterations"), &Input::play_joy_force_effect, DEFVAL(1));
+	ClassDB::bind_method(D_METHOD("start_joy_force_effect", "device", "effect", "params"), &Input::start_joy_force_effect, DEFVAL(Dictionary()));
+	ClassDB::bind_method(D_METHOD("stop_joy_force_effect", "device", "effect_id"), &Input::stop_joy_force_effect);
+	ClassDB::bind_method(D_METHOD("destroy_joy_force_effect", "device", "effect_id"), &Input::destroy_joy_force_effect);
+	ClassDB::bind_method(D_METHOD("stop_joy_force_effects", "device"), &Input::stop_joy_force_effects);
+	ClassDB::bind_method(D_METHOD("set_joy_force_feedback_gain", "device", "gain"), &Input::set_joy_force_feedback_gain);
+	ClassDB::bind_method(D_METHOD("set_joy_force_feedback_autocenter", "device", "autocenter"), &Input::set_joy_force_feedback_autocenter);
+
+	ClassDB::bind_method(D_METHOD("set_joy_driver_hint", "name", "value"), &Input::set_joy_driver_hint);
+	ClassDB::bind_method(D_METHOD("get_joy_driver_hint", "name"), &Input::get_joy_driver_hint);
 	ClassDB::bind_method(D_METHOD("get_last_mouse_velocity"), &Input::get_last_mouse_velocity);
 	ClassDB::bind_method(D_METHOD("get_last_mouse_screen_velocity"), &Input::get_last_mouse_screen_velocity);
 	ClassDB::bind_method(D_METHOD("get_mouse_button_mask"), &Input::get_mouse_button_mask);
@@ -235,6 +284,67 @@ void Input::_bind_methods() {
 	BIND_ENUM_CONSTANT(CURSOR_VSPLIT);
 	BIND_ENUM_CONSTANT(CURSOR_HSPLIT);
 	BIND_ENUM_CONSTANT(CURSOR_HELP);
+
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_UNKNOWN);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_STANDARD);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_XBOX_360);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_XBOX_ONE);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_PS3);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_PS4);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_PS5);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_SWITCH_PRO);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_SWITCH_JOYCON_LEFT);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_SWITCH_JOYCON_RIGHT);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_SWITCH_JOYCON_PAIR);
+	BIND_ENUM_CONSTANT(JOYPAD_TYPE_MAX);
+
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_UNKNOWN);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_A);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_B);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_X);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_Y);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_CROSS);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_CIRCLE);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_SQUARE);
+	BIND_ENUM_CONSTANT(JOY_BUTTON_LABEL_TRIANGLE);
+
+	BIND_ENUM_CONSTANT(JOY_POWER_STATE_ERROR);
+	BIND_ENUM_CONSTANT(JOY_POWER_STATE_UNKNOWN);
+	BIND_ENUM_CONSTANT(JOY_POWER_STATE_ON_BATTERY);
+	BIND_ENUM_CONSTANT(JOY_POWER_STATE_NO_BATTERY);
+	BIND_ENUM_CONSTANT(JOY_POWER_STATE_CHARGING);
+	BIND_ENUM_CONSTANT(JOY_POWER_STATE_CHARGED);
+
+	BIND_ENUM_CONSTANT(JOY_CONNECTION_INVALID);
+	BIND_ENUM_CONSTANT(JOY_CONNECTION_UNKNOWN);
+	BIND_ENUM_CONSTANT(JOY_CONNECTION_WIRED);
+	BIND_ENUM_CONSTANT(JOY_CONNECTION_WIRELESS);
+
+	BIND_ENUM_CONSTANT(JOY_SENSOR_ACCELEROMETER);
+	BIND_ENUM_CONSTANT(JOY_SENSOR_GYROSCOPE);
+	BIND_ENUM_CONSTANT(JOY_SENSOR_ACCELEROMETER_LEFT);
+	BIND_ENUM_CONSTANT(JOY_SENSOR_GYROSCOPE_LEFT);
+	BIND_ENUM_CONSTANT(JOY_SENSOR_ACCELEROMETER_RIGHT);
+	BIND_ENUM_CONSTANT(JOY_SENSOR_GYROSCOPE_RIGHT);
+
+	BIND_ENUM_CONSTANT(JOY_TRIGGER_EFFECT_OFF);
+	BIND_ENUM_CONSTANT(JOY_TRIGGER_EFFECT_FEEDBACK);
+	BIND_ENUM_CONSTANT(JOY_TRIGGER_EFFECT_WEAPON);
+	BIND_ENUM_CONSTANT(JOY_TRIGGER_EFFECT_VIBRATION);
+
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_CONSTANT);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_SINE);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_SQUARE);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_TRIANGLE);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_SAWTOOTH_UP);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_SAWTOOTH_DOWN);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_RAMP);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_SPRING);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_DAMPER);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_INERTIA);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_FRICTION);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_LEFT_RIGHT);
+	BIND_ENUM_CONSTANT(JOY_FORCE_EFFECT_MAX);
 
 	ADD_SIGNAL(MethodInfo("joy_connection_changed", PropertyInfo(Variant::INT, "device"), PropertyInfo(Variant::BOOL, "connected")));
 }
@@ -2372,6 +2482,11 @@ Input::Input() {
 	gyroscope_enabled = GLOBAL_DEF_RST_BASIC("input_devices/sensors/enable_gyroscope", false);
 	magnetometer_enabled = GLOBAL_DEF_RST_BASIC("input_devices/sensors/enable_magnetometer", false);
 	ignore_joypad_on_unfocused_application = GLOBAL_DEF_RST_BASIC("input_devices/joypads/ignore_joypad_on_unfocused_application", false);
+
+	const Dictionary driver_hints = GLOBAL_DEF_RST(PropertyInfo(Variant::DICTIONARY, "input_devices/joypads/driver_hints", PROPERTY_HINT_DICTIONARY_TYPE, "String;String"), Dictionary());
+	for (const KeyValue<Variant, Variant> &E : driver_hints) {
+		pending_joy_driver_hints[E.key] = E.value;
+	}
 }
 
 Input::~Input() {
@@ -2379,3 +2494,497 @@ Input::~Input() {
 }
 
 //////////////////////////////////////////////////////////
+
+Input::JoypadFeatures *Input::_get_joy_features(int p_device) const {
+	const Joypad *joypad = joy_names.getptr(p_device);
+	if (joypad == nullptr || !joypad->connected) {
+		return nullptr;
+	}
+	return joypad->features;
+}
+
+bool Input::has_joy_trigger_vibration(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->has_joy_trigger_vibration();
+}
+
+void Input::start_joy_trigger_vibration(int p_device, float p_left_magnitude, float p_right_magnitude, float p_duration) {
+	_THREAD_SAFE_METHOD_
+	if (_should_ignore_joypad_events()) {
+		return;
+	}
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features == nullptr || !features->has_joy_trigger_vibration()) {
+		return;
+	}
+	features->start_joy_trigger_vibration(CLAMP(p_left_magnitude, 0.0f, 1.0f), CLAMP(p_right_magnitude, 0.0f, 1.0f), MAX(p_duration, 0.0f));
+}
+
+void Input::stop_joy_trigger_vibration(int p_device) {
+	start_joy_trigger_vibration(p_device, 0.0f, 0.0f, 0.0f);
+}
+
+bool Input::send_joy_effect(int p_device, const PackedByteArray &p_data) {
+	_THREAD_SAFE_METHOD_
+	if (_should_ignore_joypad_events() || p_data.is_empty()) {
+		return false;
+	}
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->send_joy_effect(p_data);
+}
+
+bool Input::has_joy_adaptive_triggers(int p_device) const {
+	return get_joy_real_type(p_device) == JOYPAD_TYPE_PS5;
+}
+
+// DualSense trigger effects, laid out as in Nielk1's community documentation of the controller.
+// A trigger's travel is split into ten zones.
+static void _encode_dualsense_trigger_effect(uint8_t *r_effect, Input::JoyTriggerEffect p_effect, float p_start, float p_end, float p_strength, float p_frequency) {
+	memset(r_effect, 0, 11);
+	r_effect[0] = 0x05; // Off.
+
+	const int strength = (int)Math::round(CLAMP(p_strength, 0.0f, 1.0f) * 8.0f);
+	if (strength == 0) {
+		return;
+	}
+	const uint32_t level = (uint32_t)(strength - 1) & 0x07;
+
+	switch (p_effect) {
+		case Input::JOY_TRIGGER_EFFECT_FEEDBACK:
+		case Input::JOY_TRIGGER_EFFECT_VIBRATION: {
+			const bool vibration = p_effect == Input::JOY_TRIGGER_EFFECT_VIBRATION;
+			const int frequency = CLAMP((int)Math::round(p_frequency), 0, 255);
+			if (vibration && frequency == 0) {
+				return;
+			}
+			const int start = (int)Math::round(CLAMP(p_start, 0.0f, 1.0f) * 9.0f);
+			uint16_t active_zones = 0;
+			uint32_t level_zones = 0;
+			for (int i = start; i < 10; i++) {
+				level_zones |= level << (3 * i);
+				active_zones |= 1 << i;
+			}
+			r_effect[0] = vibration ? 0x26 : 0x21;
+			r_effect[1] = active_zones & 0xFF;
+			r_effect[2] = (active_zones >> 8) & 0xFF;
+			r_effect[3] = level_zones & 0xFF;
+			r_effect[4] = (level_zones >> 8) & 0xFF;
+			r_effect[5] = (level_zones >> 16) & 0xFF;
+			r_effect[6] = (level_zones >> 24) & 0xFF;
+			if (vibration) {
+				r_effect[9] = frequency;
+			}
+		} break;
+		case Input::JOY_TRIGGER_EFFECT_WEAPON: {
+			const int start = CLAMP((int)Math::round(CLAMP(p_start, 0.0f, 1.0f) * 9.0f), 2, 7);
+			const int end = CLAMP((int)Math::round(CLAMP(p_end, 0.0f, 1.0f) * 9.0f), start + 1, 8);
+			const uint16_t zones = (1 << start) | (1 << end);
+			r_effect[0] = 0x25;
+			r_effect[1] = zones & 0xFF;
+			r_effect[2] = (zones >> 8) & 0xFF;
+			r_effect[3] = level;
+		} break;
+		default:
+			break;
+	}
+}
+
+bool Input::set_joy_trigger_effect(int p_device, JoyAxis p_trigger, JoyTriggerEffect p_effect, float p_start, float p_end, float p_strength, float p_frequency) {
+	ERR_FAIL_COND_V_MSG(p_trigger != JoyAxis::TRIGGER_LEFT && p_trigger != JoyAxis::TRIGGER_RIGHT, false, "The trigger must be JOY_AXIS_TRIGGER_LEFT or JOY_AXIS_TRIGGER_RIGHT.");
+	if (!has_joy_adaptive_triggers(p_device)) {
+		return false;
+	}
+
+	// The DualSense output report body (DS5EffectsState_t in SDL), 47 bytes.
+	PackedByteArray report;
+	report.resize(47);
+	uint8_t *data = report.ptrw();
+	memset(data, 0, 47);
+	const bool right = p_trigger == JoyAxis::TRIGGER_RIGHT;
+	data[0] = right ? 0x04 : 0x08;
+	_encode_dualsense_trigger_effect(data + (right ? 10 : 21), p_effect, p_start, p_end, p_strength, p_frequency);
+	return send_joy_effect(p_device, report);
+}
+
+bool Input::has_joy_hd_vibration(int p_device) const {
+	const JoypadType type = get_joy_real_type(p_device);
+	return type >= JOYPAD_TYPE_SWITCH_PRO && type <= JOYPAD_TYPE_SWITCH_JOYCON_PAIR;
+}
+
+// Switch rumble encoding, from dekuNukem's Nintendo Switch reverse engineering notes (the same steps SDL uses).
+static const uint16_t _switch_amplitude_steps[101] = {
+	0, 514, 775, 921, 1096, 1303, 1550, 1843, 2192, 2606, 3100, 3686, 4383, 5213, 6199, 7372, 7698, 8039, 8395, 8767,
+	9155, 9560, 9984, 10426, 10887, 11369, 11873, 12398, 12947, 13520, 14119, 14744, 15067, 15397, 15734, 16079, 16431, 16790, 17158, 17534,
+	17918, 18310, 18711, 19121, 19540, 19967, 20405, 20851, 21308, 21775, 22251, 22739, 23236, 23745, 24265, 24797, 25340, 25894, 26462, 27041,
+	27633, 28238, 28856, 29488, 30134, 30794, 31468, 32157, 32861, 33581, 34316, 35068, 35836, 36620, 37422, 38242, 39079, 39935, 40809, 41703,
+	42616, 43549, 44503, 45477, 46473, 47491, 48531, 49593, 50679, 51789, 52923, 54082, 55266, 56476, 57713, 58977, 60268, 61588, 62936, 64315,
+	65535
+};
+
+static int _switch_amplitude_step(float p_amplitude) {
+	const uint16_t amplitude = (uint16_t)(CLAMP(p_amplitude, 0.0f, 1.0f) * 65535.0f);
+	for (int i = 0; i < 101; i++) {
+		if (amplitude <= _switch_amplitude_steps[i]) {
+			return i;
+		}
+	}
+	return 100;
+}
+
+static void _encode_switch_rumble(uint8_t *r_rumble, float p_low_frequency, float p_low_amplitude, float p_high_frequency, float p_high_amplitude) {
+	const int high_step = _switch_amplitude_step(p_high_amplitude);
+	const int low_step = _switch_amplitude_step(p_low_amplitude);
+	if (high_step == 0 && low_step == 0) {
+		r_rumble[0] = 0x00;
+		r_rumble[1] = 0x01;
+		r_rumble[2] = 0x40;
+		r_rumble[3] = 0x40;
+		return;
+	}
+
+	const int high_code = CLAMP((int)Math::round(Math::log2(CLAMP(p_high_frequency, 81.75f, 1252.57f) / 10.0f) * 32.0f) - 0x60, 0, 0x7F) * 4;
+	const int low_code = CLAMP((int)Math::round(Math::log2(CLAMP(p_low_frequency, 40.87f, 626.29f) / 10.0f) * 32.0f) - 0x40, 0x01, 0x7F);
+	const uint8_t high_amplitude = (uint8_t)(high_step * 2);
+	const uint16_t low_amplitude = (uint16_t)((0x40 + (low_step >> 1)) | ((low_step & 1) ? 0x8000 : 0));
+
+	r_rumble[0] = high_code & 0xFF;
+	r_rumble[1] = high_amplitude | ((high_code >> 8) & 0x01);
+	r_rumble[2] = low_code | ((low_amplitude >> 8) & 0x80);
+	r_rumble[3] = low_amplitude & 0xFF;
+}
+
+bool Input::start_joy_hd_vibration(int p_device, float p_low_frequency, float p_low_amplitude, float p_high_frequency, float p_high_amplitude, float p_duration, bool p_left, bool p_right) {
+	_THREAD_SAFE_METHOD_
+	if (_should_ignore_joypad_events()) {
+		return false;
+	}
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features == nullptr) {
+		return false;
+	}
+
+	uint8_t rumble[8];
+	_encode_switch_rumble(rumble, p_low_frequency, p_left ? p_low_amplitude : 0.0f, p_high_frequency, p_left ? p_high_amplitude : 0.0f);
+	_encode_switch_rumble(rumble + 4, p_low_frequency, p_right ? p_low_amplitude : 0.0f, p_high_frequency, p_right ? p_high_amplitude : 0.0f);
+	return features->start_joy_hd_vibration(rumble, MAX(p_duration, 0.0f));
+}
+
+bool Input::has_joy_rgb_light(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->has_joy_rgb_light();
+}
+
+bool Input::has_joy_player_lights(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->has_joy_player_lights();
+}
+
+void Input::set_joy_player_index(int p_device, int p_index) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features) {
+		features->set_joy_player_index(p_index);
+	}
+}
+
+int Input::get_joy_player_index(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_player_index() : -1;
+}
+
+Input::JoypadType Input::get_joy_type(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_type(false) : JOYPAD_TYPE_UNKNOWN;
+}
+
+Input::JoypadType Input::get_joy_real_type(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_type(true) : JOYPAD_TYPE_UNKNOWN;
+}
+
+Input::JoyButtonLabel Input::get_joy_button_label(int p_device, JoyButton p_button) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_button_label(p_button) : JOY_BUTTON_LABEL_UNKNOWN;
+}
+
+Input::JoyPowerState Input::get_joy_power_state(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	int percent;
+	return features ? features->get_joy_power_state(percent) : JOY_POWER_STATE_UNKNOWN;
+}
+
+int Input::get_joy_battery_percent(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	int percent = -1;
+	if (features) {
+		features->get_joy_power_state(percent);
+	}
+	return percent;
+}
+
+Input::JoyConnectionState Input::get_joy_connection_state(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_connection_state() : JOY_CONNECTION_INVALID;
+}
+
+TypedArray<Dictionary> Input::get_joy_bindings(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_bindings() : TypedArray<Dictionary>();
+}
+
+int Input::get_joy_touchpad_count(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_touchpad_count() : 0;
+}
+
+int Input::get_joy_touchpad_finger_count(int p_device, int p_touchpad) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_touchpad_finger_count(p_touchpad) : 0;
+}
+
+bool Input::is_joy_touchpad_finger_down(int p_device, int p_touchpad, int p_finger) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	Vector2 position;
+	float pressure;
+	return features && !_should_ignore_joypad_events() && features->get_joy_touchpad_finger(p_touchpad, p_finger, position, pressure);
+}
+
+Vector2 Input::get_joy_touchpad_finger_position(int p_device, int p_touchpad, int p_finger) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	Vector2 position;
+	float pressure = 0.0f;
+	if (features && !_should_ignore_joypad_events()) {
+		features->get_joy_touchpad_finger(p_touchpad, p_finger, position, pressure);
+	}
+	return position;
+}
+
+float Input::get_joy_touchpad_finger_pressure(int p_device, int p_touchpad, int p_finger) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	Vector2 position;
+	float pressure = 0.0f;
+	if (features && !_should_ignore_joypad_events() && !features->get_joy_touchpad_finger(p_touchpad, p_finger, position, pressure)) {
+		pressure = 0.0f;
+	}
+	return pressure;
+}
+
+int Input::get_joy_ball_count(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->get_joy_ball_count() : 0;
+}
+
+Vector2 Input::get_joy_ball_motion(int p_device, int p_ball) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && !_should_ignore_joypad_events() ? features->get_joy_ball_motion(p_ball) : Vector2();
+}
+
+Vector3 Input::get_joy_gyroscope_rotation(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	if (_should_ignore_joypad_events()) {
+		return Vector3();
+	}
+	const MotionInfo *motion = joy_motion.getptr(p_device);
+	return motion ? motion->frame_rotation : Vector3();
+}
+
+bool Input::has_joy_sensor(int p_device, JoySensor p_sensor) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->has_joy_sensor(p_sensor);
+}
+
+void Input::set_joy_sensor_enabled(int p_device, JoySensor p_sensor, bool p_enable) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features) {
+		features->set_joy_sensor_enabled(p_sensor, p_enable);
+	}
+}
+
+Vector3 Input::get_joy_sensor_data(int p_device, JoySensor p_sensor) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && !_should_ignore_joypad_events() ? features->get_joy_sensor_data(p_sensor) : Vector3();
+}
+
+bool Input::has_joy_force_feedback(int p_device) const {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->has_joy_force_feedback();
+}
+
+bool Input::is_joy_force_effect_supported(int p_device, JoyForceEffect p_effect) const {
+	_THREAD_SAFE_METHOD_
+	ERR_FAIL_INDEX_V(p_effect, JOY_FORCE_EFFECT_MAX, false);
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->is_joy_force_effect_supported(p_effect);
+}
+
+int Input::create_joy_force_effect(int p_device, JoyForceEffect p_effect, const Dictionary &p_params) {
+	_THREAD_SAFE_METHOD_
+	ERR_FAIL_INDEX_V(p_effect, JOY_FORCE_EFFECT_MAX, -1);
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features ? features->create_joy_force_effect(p_effect, p_params) : -1;
+}
+
+bool Input::update_joy_force_effect(int p_device, int p_effect_id, const Dictionary &p_params) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->update_joy_force_effect(p_effect_id, p_params);
+}
+
+bool Input::play_joy_force_effect(int p_device, int p_effect_id, int p_iterations) {
+	_THREAD_SAFE_METHOD_
+	if (_should_ignore_joypad_events()) {
+		return false;
+	}
+	JoypadFeatures *features = _get_joy_features(p_device);
+	return features && features->play_joy_force_effect(p_effect_id, p_iterations);
+}
+
+int Input::start_joy_force_effect(int p_device, JoyForceEffect p_effect, const Dictionary &p_params) {
+	_THREAD_SAFE_METHOD_
+	if (_should_ignore_joypad_events()) {
+		return -1;
+	}
+	ERR_FAIL_INDEX_V(p_effect, JOY_FORCE_EFFECT_MAX, -1);
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features == nullptr) {
+		return -1;
+	}
+	Dictionary params = p_params.duplicate();
+	params["_auto_destroy"] = true;
+	const int id = features->create_joy_force_effect(p_effect, params);
+	if (id >= 0 && !features->play_joy_force_effect(id, 1)) {
+		features->destroy_joy_force_effect(id);
+		return -1;
+	}
+	return id;
+}
+
+void Input::stop_joy_force_effect(int p_device, int p_effect_id) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features) {
+		features->stop_joy_force_effect(p_effect_id);
+	}
+}
+
+void Input::destroy_joy_force_effect(int p_device, int p_effect_id) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features) {
+		features->destroy_joy_force_effect(p_effect_id);
+	}
+}
+
+void Input::stop_joy_force_effects(int p_device) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features) {
+		features->stop_joy_force_effects();
+	}
+}
+
+void Input::set_joy_force_feedback_gain(int p_device, float p_gain) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features) {
+		features->set_joy_force_feedback_gain(CLAMP(p_gain, 0.0f, 1.0f));
+	}
+}
+
+void Input::set_joy_force_feedback_autocenter(int p_device, float p_autocenter) {
+	_THREAD_SAFE_METHOD_
+	JoypadFeatures *features = _get_joy_features(p_device);
+	if (features) {
+		features->set_joy_force_feedback_autocenter(CLAMP(p_autocenter, 0.0f, 1.0f));
+	}
+}
+
+bool Input::set_joy_driver_hint(const String &p_name, const String &p_value) {
+	_THREAD_SAFE_METHOD_
+	if (joypad_driver) {
+		return joypad_driver->set_hint(p_name, p_value);
+	}
+	pending_joy_driver_hints[p_name] = p_value;
+	return true;
+}
+
+String Input::get_joy_driver_hint(const String &p_name) const {
+	_THREAD_SAFE_METHOD_
+	if (joypad_driver) {
+		return joypad_driver->get_hint(p_name);
+	}
+	const String *pending = pending_joy_driver_hints.getptr(p_name);
+	return pending ? *pending : String();
+}
+
+void Input::set_joypad_driver(JoypadDriver *p_driver) {
+	_THREAD_SAFE_METHOD_
+	joypad_driver = p_driver;
+}
+
+void Input::set_joy_info_value(int p_device, const String &p_key, const Variant &p_value) {
+	_THREAD_SAFE_METHOD_
+	Joypad *joypad = joy_names.getptr(p_device);
+	if (joypad == nullptr) {
+		return;
+	}
+	if (p_value.get_type() == Variant::NIL) {
+		joypad->info.erase(p_key);
+	} else {
+		joypad->info[p_key] = p_value;
+	}
+}
+
+void Input::joy_motion_sample(int p_device, const Vector3 &p_accelerometer, const Vector3 &p_gyroscope, float p_delta) {
+	_THREAD_SAFE_METHOD_
+
+	if (_should_ignore_joypad_events()) {
+		return;
+	}
+
+	MotionInfo *motion = joy_motion.getptr(p_device);
+	if (motion == nullptr) {
+		return;
+	}
+
+	Vector3 gyro_degrees = p_gyroscope * 180.0 / M_PI;
+	Vector3 accel_g = -p_accelerometer / STANDARD_GRAVITY;
+	motion->last_timestamp = OS::get_singleton()->get_ticks_msec();
+	motion->gamepad_motion->ProcessMotion(gyro_degrees.x, gyro_degrees.y, gyro_degrees.z, accel_g.x, accel_g.y, accel_g.z, p_delta);
+
+	float calibrated[3];
+	motion->gamepad_motion->GetCalibratedGyro(calibrated[0], calibrated[1], calibrated[2]);
+	motion->pending_rotation += Vector3(calibrated[0], calibrated[1], calibrated[2]) * (M_PI / 180.0) * p_delta;
+}
+
+void Input::joy_motion_frame(int p_device) {
+	_THREAD_SAFE_METHOD_
+	MotionInfo *motion = joy_motion.getptr(p_device);
+	if (motion == nullptr) {
+		return;
+	}
+	motion->frame_rotation = motion->pending_rotation;
+	motion->pending_rotation = Vector3();
+}

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="HIDDevice" inherits="RefCounted" api_type="core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Raw access to a USB or Bluetooth HID device.
+	</brief_description>
+	<description>
+		Talks to a HID device directly with its own reports, for controllers or features the joypad driver doesn't handle. Opening a controller that is also in use as a joypad works, but writing to it can interfere with the driver.
+		[codeblock]
+		for info in HIDDevice.enumerate(0x054C):
+		    print(info.product, " ", info.path)
+		[/codeblock]
+		[b]Note:[/b] Only available on Windows, macOS and Linux.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="close">
+			<return type="void" />
+			<description>
+				Closes the device.
+			</description>
+		</method>
+		<method name="enumerate" qualifiers="static">
+			<return type="Dictionary[]" />
+			<param index="0" name="vendor_id" type="int" default="0" />
+			<param index="1" name="product_id" type="int" default="0" />
+			<description>
+				Returns every connected HID device as a [Dictionary] with [code]"path"[/code], [code]"vendor_id"[/code], [code]"product_id"[/code], [code]"serial_number"[/code], [code]"release_number"[/code], [code]"manufacturer"[/code], [code]"product"[/code], [code]"usage_page"[/code], [code]"usage"[/code], [code]"interface_number"[/code] and [code]"bluetooth"[/code]. A non-zero [param vendor_id] or [param product_id] lists only matching devices.
+			</description>
+		</method>
+		<method name="get_error" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the last error message from the HID layer.
+			</description>
+		</method>
+		<method name="get_feature_report">
+			<return type="PackedByteArray" />
+			<param index="0" name="report_id" type="int" />
+			<param index="1" name="max_size" type="int" />
+			<description>
+				Reads feature report [param report_id], up to [param max_size] bytes after the report ID. The first byte of the result is the report ID.
+			</description>
+		</method>
+		<method name="get_info" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Returns the open device's details, in the same form as [method enumerate].
+			</description>
+		</method>
+		<method name="get_input_report">
+			<return type="PackedByteArray" />
+			<param index="0" name="report_id" type="int" />
+			<param index="1" name="max_size" type="int" />
+			<description>
+				Reads input report [param report_id], up to [param max_size] bytes after the report ID. The first byte of the result is the report ID.
+			</description>
+		</method>
+		<method name="get_report_descriptor">
+			<return type="PackedByteArray" />
+			<description>
+				Returns the device's HID report descriptor.
+			</description>
+		</method>
+		<method name="is_open" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if a device is open.
+			</description>
+		</method>
+		<method name="open">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Opens the device at [param path], as given by [method enumerate].
+			</description>
+		</method>
+		<method name="open_by_id">
+			<return type="int" enum="Error" />
+			<param index="0" name="vendor_id" type="int" />
+			<param index="1" name="product_id" type="int" />
+			<param index="2" name="serial_number" type="String" default="&quot;&quot;" />
+			<description>
+				Opens the first device matching [param vendor_id] and [param product_id], and [param serial_number] if given.
+			</description>
+		</method>
+		<method name="read">
+			<return type="PackedByteArray" />
+			<param index="0" name="max_size" type="int" />
+			<param index="1" name="timeout_msec" type="int" default="0" />
+			<description>
+				Reads one input report of up to [param max_size] bytes, waiting up to [param timeout_msec] milliseconds ([code]0[/code] returns at once, [code]-1[/code] waits forever). Returns an empty array if nothing arrived.
+			</description>
+		</method>
+		<method name="send_feature_report">
+			<return type="int" />
+			<param index="0" name="data" type="PackedByteArray" />
+			<description>
+				Sends a feature report. The first byte is the report ID ([code]0[/code] if the device uses none). Returns the number of bytes sent, or [code]-1[/code] on failure.
+			</description>
+		</method>
+		<method name="write">
+			<return type="int" />
+			<param index="0" name="data" type="PackedByteArray" />
+			<description>
+				Sends an output report. The first byte is the report ID ([code]0[/code] if the device uses none). Returns the number of bytes sent, or [code]-1[/code] on failure.
+			</description>
+		</method>
+	</methods>
+</class>

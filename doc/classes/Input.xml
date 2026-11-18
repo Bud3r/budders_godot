@@ -47,6 +47,31 @@
 				[b]Note:[/b] This feature is only supported on Windows, Linux, macOS, and iOS.
 			</description>
 		</method>
+		<method name="create_joy_force_effect">
+			<return type="int" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="effect" type="int" enum="Input.JoyForceEffect" />
+			<param index="2" name="params" type="Dictionary" default="{}" />
+			<description>
+				Uploads a force feedback effect to the device and returns its ID, or [code]-1[/code] if the device can't play it. Play it with [method play_joy_force_effect] and free it with [method destroy_joy_force_effect].
+				[param params] keys (all optional):
+				- Every effect: [code]"duration"[/code] (seconds, [code]0[/code] plays forever), [code]"delay"[/code] (seconds), [code]"direction"[/code] (degrees the force comes from), [code]"steering"[/code] (pushes along the wheel's axis; on by default for one-axis devices).
+				- Constant: [code]"level"[/code] (-1 to 1).
+				- Sine, square, triangle, sawtooth: [code]"magnitude"[/code] (-1 to 1), [code]"period"[/code] (seconds), [code]"offset"[/code] (-1 to 1), [code]"phase"[/code] (degrees).
+				- Ramp: [code]"start"[/code] and [code]"end"[/code] (-1 to 1).
+				- Constant, periodic and ramp: [code]"attack_length"[/code], [code]"attack_level"[/code], [code]"fade_length"[/code], [code]"fade_level"[/code].
+				- Spring, damper, inertia, friction: [code]"right_saturation"[/code], [code]"left_saturation"[/code] (0 to 1), [code]"right_coefficient"[/code], [code]"left_coefficient"[/code] (-1 to 1), [code]"deadband"[/code] (0 to 1), [code]"center"[/code] (-1 to 1).
+				- Left/right: [code]"large_magnitude"[/code], [code]"small_magnitude"[/code] (0 to 1).
+			</description>
+		</method>
+		<method name="destroy_joy_force_effect">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="effect_id" type="int" />
+			<description>
+				Stops an effect and frees it on the device.
+			</description>
+		</method>
 		<method name="flush_buffered_events">
 			<return type="void" />
 			<description>
@@ -140,6 +165,57 @@
 				Returns the current value of the joypad axis at index [param axis].
 			</description>
 		</method>
+		<method name="get_joy_ball_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns how many trackballs the joypad has.
+			</description>
+		</method>
+		<method name="get_joy_ball_motion" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="ball" type="int" />
+			<description>
+				Returns how far [param ball] rolled during the last frame.
+			</description>
+		</method>
+		<method name="get_joy_battery_percent" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns the joypad's battery level from [code]0[/code] to [code]100[/code], or [code]-1[/code] if it is not known.
+			</description>
+		</method>
+		<method name="get_joy_bindings" qualifiers="const">
+			<return type="Dictionary[]" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns how the joypad's raw inputs map to its buttons and axes, one [Dictionary] per binding. Each has [code]"input_type"[/code] ([code]"button"[/code], [code]"axis"[/code] or [code]"hat"[/code]) with [code]"input_button"[/code], [code]"input_axis"[/code]/[code]"input_axis_min"[/code]/[code]"input_axis_max"[/code] or [code]"input_hat"[/code]/[code]"input_hat_mask"[/code], and [code]"output_type"[/code] ([code]"button"[/code] or [code]"axis"[/code]) with [code]"output_button"[/code] ([enum JoyButton]) or [code]"output_axis"[/code] ([enum JoyAxis]) and its range.
+			</description>
+		</method>
+		<method name="get_joy_button_label" qualifiers="const">
+			<return type="int" enum="Input.JoyButtonLabel" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="button" type="int" enum="JoyButton" />
+			<description>
+				Returns the label printed on [param button], such as [constant JOY_BUTTON_LABEL_CROSS] on a PlayStation controller, or [constant JOY_BUTTON_LABEL_B] for the bottom button of a Nintendo controller.
+			</description>
+		</method>
+		<method name="get_joy_connection_state" qualifiers="const">
+			<return type="int" enum="Input.JoyConnectionState" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns whether the joypad is connected by cable or wirelessly.
+			</description>
+		</method>
+		<method name="get_joy_driver_hint" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="name" type="String" />
+			<description>
+				Returns the current value of an SDL hint, or an empty string if it is unset.
+			</description>
+		</method>
 		<method name="get_joy_gravity" qualifiers="const" experimental="">
 			<return type="Vector3" />
 			<param index="0" name="device" type="int" />
@@ -173,6 +249,14 @@
 				Z: Angular speed around the Z axis (roll).
 				See [method start_joy_motion_sensors_calibration] for an example on how to use joypad gyroscope and gyroscope calibration in your games.
 				[b]Note:[/b] This feature is only supported on Windows, Linux, macOS, and iOS.
+			</description>
+		</method>
+		<method name="get_joy_gyroscope_rotation" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns how far the joypad turned during the last frame, in radians around each axis, summed over every gyroscope sample the joypad sent rather than read once per frame. Uses the same calibration as [method get_joy_gyroscope]. This is the value to use for gyro aiming: multiply it by a sensitivity and add it to the camera rotation.
+				[b]Note:[/b] Motion sensors must be enabled with [method set_joy_motion_sensors_enabled].
 			</description>
 		</method>
 		<method name="get_joy_info" qualifiers="const">
@@ -215,6 +299,75 @@
 			<param index="0" name="device" type="int" />
 			<description>
 				Returns the name of the joypad at the specified device index, e.g. [code]PS4 Controller[/code]. Godot uses the [url=https://github.com/gabomdq/SDL_GameControllerDB]SDL2 game controller database[/url] to determine gamepad names.
+			</description>
+		</method>
+		<method name="get_joy_player_index" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns the player number set with [method set_joy_player_index], or [code]-1[/code] if there is none.
+			</description>
+		</method>
+		<method name="get_joy_power_state" qualifiers="const">
+			<return type="int" enum="Input.JoyPowerState" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns whether the joypad runs on battery or is plugged in.
+			</description>
+		</method>
+		<method name="get_joy_real_type" qualifiers="const">
+			<return type="int" enum="Input.JoypadType" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns the kind of joypad, looking past Steam Input's virtual controllers to the hardware.
+			</description>
+		</method>
+		<method name="get_joy_sensor_data" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="sensor" type="int" enum="Input.JoySensor" />
+			<description>
+				Returns the latest raw reading of [param sensor], as the driver reports it: meters per second squared for accelerometers, radians per second for gyroscopes. No calibration is applied.
+			</description>
+		</method>
+		<method name="get_joy_touchpad_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns how many touchpads the joypad has: one on a DualShock 4 or DualSense, two on a Steam Deck.
+			</description>
+		</method>
+		<method name="get_joy_touchpad_finger_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="touchpad" type="int" />
+			<description>
+				Returns how many fingers [param touchpad] can track at once.
+			</description>
+		</method>
+		<method name="get_joy_touchpad_finger_position" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="touchpad" type="int" />
+			<param index="2" name="finger" type="int" />
+			<description>
+				Returns where [param finger] is on [param touchpad], from [code](0, 0)[/code] at the top left to [code](1, 1)[/code] at the bottom right.
+			</description>
+		</method>
+		<method name="get_joy_touchpad_finger_pressure" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="touchpad" type="int" />
+			<param index="2" name="finger" type="int" />
+			<description>
+				Returns how hard [param finger] presses on [param touchpad], from [code]0.0[/code] to [code]1.0[/code], or [code]0.0[/code] if it isn't touching.
+			</description>
+		</method>
+		<method name="get_joy_type" qualifiers="const">
+			<return type="int" enum="Input.JoypadType" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns the kind of joypad. A controller seen through Steam Input reports the type Steam presents it as; see [method get_joy_real_type].
 			</description>
 		</method>
 		<method name="get_joy_vibration_duration">
@@ -281,6 +434,27 @@
 				By default, the deadzone is automatically calculated from the average of the action deadzones. However, you can override the deadzone to be whatever you want (on the range of 0 to 1).
 			</description>
 		</method>
+		<method name="has_joy_adaptive_triggers" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns [code]true[/code] if the joypad has adaptive triggers (a DualSense). See [method set_joy_trigger_effect].
+			</description>
+		</method>
+		<method name="has_joy_force_feedback" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns [code]true[/code] if the device supports force feedback effects, as racing wheels and flight sticks do. Ordinary gamepad rumble uses [method start_joy_vibration] instead.
+			</description>
+		</method>
+		<method name="has_joy_hd_vibration" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns [code]true[/code] if the joypad has HD rumble (a Switch Pro Controller or Joy-Con). See [method start_joy_hd_vibration].
+			</description>
+		</method>
 		<method name="has_joy_light" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="device" type="int" />
@@ -296,6 +470,35 @@
 				Returns [code]true[/code] if the joypad has motion sensors (accelerometer and gyroscope).
 				[b]Note:[/b] On iOS, joypad accelerometer sensor reading is not supported due to OS limitations.
 				[b]Note:[/b] This feature is only supported on Windows, Linux, macOS, and iOS.
+			</description>
+		</method>
+		<method name="has_joy_player_lights" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns [code]true[/code] if the joypad has player number lights, such as the four lights on a Switch controller. See [method set_joy_player_index].
+			</description>
+		</method>
+		<method name="has_joy_rgb_light" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns [code]true[/code] if the joypad's light can show any color, rather than only turning on and off. See [method set_joy_light].
+			</description>
+		</method>
+		<method name="has_joy_sensor" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="sensor" type="int" enum="Input.JoySensor" />
+			<description>
+				Returns [code]true[/code] if the joypad has [param sensor]. The left and right sensors exist on a Joy-Con pair, one set in each Joy-Con.
+			</description>
+		</method>
+		<method name="has_joy_trigger_vibration" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Returns [code]true[/code] if the joypad has motors in its triggers, as Xbox One and Xbox Series controllers do.
 			</description>
 		</method>
 		<method name="has_joy_vibration" qualifiers="const">
@@ -396,6 +599,14 @@
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="is_joy_force_effect_supported" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="effect" type="int" enum="Input.JoyForceEffect" />
+			<description>
+				Returns [code]true[/code] if the device can play [param effect].
+			</description>
+		</method>
 		<method name="is_joy_known" keywords="is_gamepad_known, is_controller_known">
 			<return type="bool" />
 			<param index="0" name="device" type="int" />
@@ -428,6 +639,15 @@
 				Returns [code]true[/code] if the requested joypad has motion sensors (accelerometer and gyroscope) and they are currently enabled. See also [method set_joy_motion_sensors_enabled] and [method has_joy_motion_sensors].
 				See [method start_joy_motion_sensors_calibration] for an example on how to use joypad motion sensors and calibration in your games.
 				[b]Note:[/b] This feature is only supported on Windows, Linux, macOS, and iOS.
+			</description>
+		</method>
+		<method name="is_joy_touchpad_finger_down" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="touchpad" type="int" />
+			<param index="2" name="finger" type="int" />
+			<description>
+				Returns [code]true[/code] if [param finger] is touching [param touchpad]. Touches also arrive as [InputEventJoypadTouchpad] events.
 			</description>
 		</method>
 		<method name="is_joy_vibrating" experimental="">
@@ -560,12 +780,30 @@
 				[b]Note:[/b] Calling this function has no influence on the operating system. So for example sending an [InputEventMouseMotion] will not move the OS mouse cursor to the specified position (use [method warp_mouse] instead) and sending [kbd]Alt/Cmd + Tab[/kbd] as [InputEventKey] won't toggle between active windows.
 			</description>
 		</method>
+		<method name="play_joy_force_effect">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="effect_id" type="int" />
+			<param index="2" name="iterations" type="int" default="1" />
+			<description>
+				Plays an effect made with [method create_joy_force_effect] [param iterations] times; [code]0[/code] repeats it forever.
+			</description>
+		</method>
 		<method name="remove_joy_mapping">
 			<return type="void" />
 			<param index="0" name="guid" type="String" />
 			<description>
 				Removes all mappings from the internal database that match the given GUID. All currently connected joypads that use this GUID will become unmapped.
 				On Android, Godot will map to an internal fallback mapping.
+			</description>
+		</method>
+		<method name="send_joy_effect">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="data" type="PackedByteArray" />
+			<description>
+				Sends a raw output report body to the joypad, in the joypad's own format. For a DualSense this is the 47-byte effects state; for a Switch controller it is a 10-byte rumble packet. Returns [code]true[/code] if it was sent.
+				[b]Note:[/b] [method set_joy_trigger_effect] and [method start_joy_hd_vibration] build these for you.
 			</description>
 		</method>
 		<method name="set_accelerometer">
@@ -615,6 +853,31 @@
 				[b]Note:[/b] This value can be immediately overwritten by the hardware sensor value on Android and iOS.
 			</description>
 		</method>
+		<method name="set_joy_driver_hint">
+			<return type="bool" />
+			<param index="0" name="name" type="String" />
+			<param index="1" name="value" type="String" />
+			<description>
+				Sets an SDL hint, such as [code]"SDL_JOYSTICK_HIDAPI_STEAM"[/code] to read Steam Controllers directly. Some hints only take effect for joypads connected afterward, and some only before the driver starts; set those in [member ProjectSettings.input_devices/joypads/driver_hints]. Returns [code]false[/code] if the hint was not set.
+				[b]Note:[/b] Only the SDL joypad driver (Windows, macOS and Linux) uses hints.
+			</description>
+		</method>
+		<method name="set_joy_force_feedback_autocenter">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="autocenter" type="float" />
+			<description>
+				Sets how strongly the device pulls back to its center on its own, from [code]0.0[/code] (off) to [code]1.0[/code], if the device supports it.
+			</description>
+		</method>
+		<method name="set_joy_force_feedback_gain">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="gain" type="float" />
+			<description>
+				Scales the strength of every effect on the device, from [code]0.0[/code] to [code]1.0[/code], if the device supports it.
+			</description>
+		</method>
 		<method name="set_joy_light">
 			<return type="void" />
 			<param index="0" name="device" type="int" />
@@ -646,6 +909,42 @@
 				[b]Note:[/b] This feature is only supported on Windows, Linux, macOS, and iOS.
 			</description>
 		</method>
+		<method name="set_joy_player_index">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Sets the player number the joypad shows on its player lights or light bar. [param index] starts at [code]0[/code]. Use [code]-1[/code] to clear it.
+			</description>
+		</method>
+		<method name="set_joy_sensor_enabled">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="sensor" type="int" enum="Input.JoySensor" />
+			<param index="2" name="enable" type="bool" />
+			<description>
+				Turns [param sensor] on or off. The main accelerometer and gyroscope are turned on with [method set_joy_motion_sensors_enabled] instead.
+			</description>
+		</method>
+		<method name="set_joy_trigger_effect">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="trigger" type="int" enum="JoyAxis" />
+			<param index="2" name="effect" type="int" enum="Input.JoyTriggerEffect" />
+			<param index="3" name="start" type="float" default="0.0" />
+			<param index="4" name="end" type="float" default="1.0" />
+			<param index="5" name="strength" type="float" default="1.0" />
+			<param index="6" name="frequency" type="float" default="0.0" />
+			<description>
+				Sets the resistance effect of one of a DualSense's adaptive triggers. [param trigger] is [constant JOY_AXIS_TRIGGER_LEFT] or [constant JOY_AXIS_TRIGGER_RIGHT].
+				[param start] and [param end] are positions along the trigger's travel, from [code]0.0[/code] (released) to [code]1.0[/code] (fully pressed); the trigger is split into ten zones. [param strength] goes from [code]0.0[/code] to [code]1.0[/code]; [code]0.0[/code] turns the effect off.
+				- [constant JOY_TRIGGER_EFFECT_FEEDBACK]: steady resistance from [param start] onward.
+				- [constant JOY_TRIGGER_EFFECT_WEAPON]: resistance between [param start] and [param end] that gives way with a click, like a gun trigger. [param start] is kept between 0.2 and 0.8.
+				- [constant JOY_TRIGGER_EFFECT_VIBRATION]: the trigger buzzes from [param start] onward at [param frequency] hertz (1 to 255).
+				- [constant JOY_TRIGGER_EFFECT_OFF]: no resistance.
+				Returns [code]false[/code] if the joypad has no adaptive triggers. The triggers are set loose again when the joypad disconnects or the game closes.
+			</description>
+		</method>
 		<method name="set_magnetometer">
 			<return type="void" />
 			<param index="0" name="value" type="Vector3" />
@@ -661,6 +960,32 @@
 			<description>
 				Queries whether an input device should be ignored or not. Devices can be ignored by setting the environment variable [code]SDL_GAMECONTROLLER_IGNORE_DEVICES[/code]. Read the [url=https://wiki.libsdl.org/SDL2]SDL documentation[/url] for more information.
 				[b]Note:[/b] Some 3rd party tools can contribute to the list of ignored devices. For example, [i]SteamInput[/i] creates virtual devices from physical devices for remapping purposes. To avoid handling the same input device twice, the original device is added to the ignore list.
+			</description>
+		</method>
+		<method name="start_joy_force_effect">
+			<return type="int" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="effect" type="int" enum="Input.JoyForceEffect" />
+			<param index="2" name="params" type="Dictionary" default="{}" />
+			<description>
+				Creates and plays an effect in one call, taking the same [param params] as [method create_joy_force_effect], and returns its ID. An effect with a [code]"duration"[/code] frees itself once it has finished; one that plays forever must be stopped and freed with [method destroy_joy_force_effect].
+			</description>
+		</method>
+		<method name="start_joy_hd_vibration">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="low_frequency" type="float" />
+			<param index="2" name="low_amplitude" type="float" />
+			<param index="3" name="high_frequency" type="float" />
+			<param index="4" name="high_amplitude" type="float" />
+			<param index="5" name="duration" type="float" default="0" />
+			<param index="6" name="left" type="bool" default="true" />
+			<param index="7" name="right" type="bool" default="true" />
+			<description>
+				Starts Switch HD rumble. Each motor plays two tones at once: a low band ([param low_frequency], 41 to 626 hertz) and a high band ([param high_frequency], 82 to 1253 hertz), each with an amplitude from [code]0.0[/code] to [code]1.0[/code]. [param left] and [param right] choose which side plays, so a Joy-Con pair can rumble on one side only.
+				[param duration] is in seconds; [code]0[/code] keeps the rumble going until it is replaced, started again with zero amplitudes, or stopped with [method stop_joy_vibration]. Call this every frame with new values to shape the rumble over time.
+				[b]Note:[/b] Keep [param low_amplitude] plus [param high_amplitude] at or below [code]1.0[/code]; more can make the motors rattle.
+				Returns [code]false[/code] if the joypad has no HD rumble.
 			</description>
 		</method>
 		<method name="start_joy_motion_sensors_calibration" experimental="">
@@ -771,6 +1096,16 @@
 				[b]Note:[/b] This feature is only supported on Windows, Linux, macOS, and iOS.
 			</description>
 		</method>
+		<method name="start_joy_trigger_vibration">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="left_magnitude" type="float" />
+			<param index="2" name="right_magnitude" type="float" />
+			<param index="3" name="duration" type="float" default="0" />
+			<description>
+				Starts vibrating the motors in the joypad's triggers. [param left_magnitude] and [param right_magnitude] go from [code]0.0[/code] to [code]1.0[/code]. [param duration] is in seconds; [code]0[/code] vibrates for as long as the driver allows (about a minute). Does nothing if [method has_joy_trigger_vibration] is [code]false[/code].
+			</description>
+		</method>
 		<method name="start_joy_vibration">
 			<return type="void" />
 			<param index="0" name="device" type="int" />
@@ -788,6 +1123,21 @@
 				[b]Note:[/b] For macOS, vibration is only supported in macOS 11 and later. When connected via USB, vibration is only supported for major brand controllers (except Xbox One and Xbox Series X/S controllers) due to macOS limitations.
 			</description>
 		</method>
+		<method name="stop_joy_force_effect">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="effect_id" type="int" />
+			<description>
+				Stops an effect without freeing it.
+			</description>
+		</method>
+		<method name="stop_joy_force_effects">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Stops every effect playing on the device.
+			</description>
+		</method>
 		<method name="stop_joy_motion_sensors_calibration" experimental="">
 			<return type="void" />
 			<param index="0" name="device" type="int" />
@@ -797,11 +1147,27 @@
 				[b]Note:[/b] This feature is only supported on Windows, Linux, macOS, and iOS.
 			</description>
 		</method>
+		<method name="stop_joy_trigger_vibration">
+			<return type="void" />
+			<param index="0" name="device" type="int" />
+			<description>
+				Stops the vibration started with [method start_joy_trigger_vibration].
+			</description>
+		</method>
 		<method name="stop_joy_vibration">
 			<return type="void" />
 			<param index="0" name="device" type="int" />
 			<description>
 				Stops the vibration of the joypad started with [method start_joy_vibration].
+			</description>
+		</method>
+		<method name="update_joy_force_effect">
+			<return type="bool" />
+			<param index="0" name="device" type="int" />
+			<param index="1" name="effect_id" type="int" />
+			<param index="2" name="params" type="Dictionary" />
+			<description>
+				Changes the parameters of an effect made with [method create_joy_force_effect], even while it plays. Takes the same [param params] keys.
 			</description>
 		</method>
 		<method name="vibrate_handheld">
@@ -928,6 +1294,168 @@
 		</constant>
 		<constant name="CURSOR_HELP" value="16" enum="CursorShape">
 			Help cursor. Usually a question mark.
+		</constant>
+		<constant name="JOYPAD_TYPE_UNKNOWN" value="0" enum="JoypadType">
+			The joypad's kind is not known.
+		</constant>
+		<constant name="JOYPAD_TYPE_STANDARD" value="1" enum="JoypadType">
+			A generic joypad with a standard layout.
+		</constant>
+		<constant name="JOYPAD_TYPE_XBOX_360" value="2" enum="JoypadType">
+			An Xbox 360 controller.
+		</constant>
+		<constant name="JOYPAD_TYPE_XBOX_ONE" value="3" enum="JoypadType">
+			An Xbox One or Xbox Series controller.
+		</constant>
+		<constant name="JOYPAD_TYPE_PS3" value="4" enum="JoypadType">
+			A PlayStation 3 controller.
+		</constant>
+		<constant name="JOYPAD_TYPE_PS4" value="5" enum="JoypadType">
+			A PlayStation 4 controller (DualShock 4).
+		</constant>
+		<constant name="JOYPAD_TYPE_PS5" value="6" enum="JoypadType">
+			A PlayStation 5 controller (DualSense).
+		</constant>
+		<constant name="JOYPAD_TYPE_SWITCH_PRO" value="7" enum="JoypadType">
+			A Nintendo Switch Pro Controller.
+		</constant>
+		<constant name="JOYPAD_TYPE_SWITCH_JOYCON_LEFT" value="8" enum="JoypadType">
+			A single left Joy-Con.
+		</constant>
+		<constant name="JOYPAD_TYPE_SWITCH_JOYCON_RIGHT" value="9" enum="JoypadType">
+			A single right Joy-Con.
+		</constant>
+		<constant name="JOYPAD_TYPE_SWITCH_JOYCON_PAIR" value="10" enum="JoypadType">
+			A left and right Joy-Con used together as one controller.
+		</constant>
+		<constant name="JOYPAD_TYPE_MAX" value="11" enum="JoypadType">
+			Represents the size of the [enum JoypadType] enum.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_UNKNOWN" value="0" enum="JoyButtonLabel">
+			The button's label is not known.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_A" value="1" enum="JoyButtonLabel">
+			The button is labeled A.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_B" value="2" enum="JoyButtonLabel">
+			The button is labeled B.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_X" value="3" enum="JoyButtonLabel">
+			The button is labeled X.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_Y" value="4" enum="JoyButtonLabel">
+			The button is labeled Y.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_CROSS" value="5" enum="JoyButtonLabel">
+			The button shows a cross.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_CIRCLE" value="6" enum="JoyButtonLabel">
+			The button shows a circle.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_SQUARE" value="7" enum="JoyButtonLabel">
+			The button shows a square.
+		</constant>
+		<constant name="JOY_BUTTON_LABEL_TRIANGLE" value="8" enum="JoyButtonLabel">
+			The button shows a triangle.
+		</constant>
+		<constant name="JOY_POWER_STATE_ERROR" value="-1" enum="JoyPowerState">
+			The power state could not be read.
+		</constant>
+		<constant name="JOY_POWER_STATE_UNKNOWN" value="0" enum="JoyPowerState">
+			The power state is not known.
+		</constant>
+		<constant name="JOY_POWER_STATE_ON_BATTERY" value="1" enum="JoyPowerState">
+			Running on battery.
+		</constant>
+		<constant name="JOY_POWER_STATE_NO_BATTERY" value="2" enum="JoyPowerState">
+			Plugged in, with no battery.
+		</constant>
+		<constant name="JOY_POWER_STATE_CHARGING" value="3" enum="JoyPowerState">
+			Plugged in and charging.
+		</constant>
+		<constant name="JOY_POWER_STATE_CHARGED" value="4" enum="JoyPowerState">
+			Plugged in and fully charged.
+		</constant>
+		<constant name="JOY_CONNECTION_INVALID" value="-1" enum="JoyConnectionState">
+			The joypad is not connected.
+		</constant>
+		<constant name="JOY_CONNECTION_UNKNOWN" value="0" enum="JoyConnectionState">
+			The connection type is not known.
+		</constant>
+		<constant name="JOY_CONNECTION_WIRED" value="1" enum="JoyConnectionState">
+			Connected by cable.
+		</constant>
+		<constant name="JOY_CONNECTION_WIRELESS" value="2" enum="JoyConnectionState">
+			Connected wirelessly.
+		</constant>
+		<constant name="JOY_SENSOR_ACCELEROMETER" value="1" enum="JoySensor">
+			The main accelerometer.
+		</constant>
+		<constant name="JOY_SENSOR_GYROSCOPE" value="2" enum="JoySensor">
+			The main gyroscope.
+		</constant>
+		<constant name="JOY_SENSOR_ACCELEROMETER_LEFT" value="3" enum="JoySensor">
+			The accelerometer in the left Joy-Con.
+		</constant>
+		<constant name="JOY_SENSOR_GYROSCOPE_LEFT" value="4" enum="JoySensor">
+			The gyroscope in the left Joy-Con.
+		</constant>
+		<constant name="JOY_SENSOR_ACCELEROMETER_RIGHT" value="5" enum="JoySensor">
+			The accelerometer in the right Joy-Con.
+		</constant>
+		<constant name="JOY_SENSOR_GYROSCOPE_RIGHT" value="6" enum="JoySensor">
+			The gyroscope in the right Joy-Con.
+		</constant>
+		<constant name="JOY_TRIGGER_EFFECT_OFF" value="0" enum="JoyTriggerEffect">
+			No trigger resistance.
+		</constant>
+		<constant name="JOY_TRIGGER_EFFECT_FEEDBACK" value="1" enum="JoyTriggerEffect">
+			Steady resistance from a position onward.
+		</constant>
+		<constant name="JOY_TRIGGER_EFFECT_WEAPON" value="2" enum="JoyTriggerEffect">
+			Resistance over a section of the travel that gives way with a click.
+		</constant>
+		<constant name="JOY_TRIGGER_EFFECT_VIBRATION" value="3" enum="JoyTriggerEffect">
+			The trigger vibrates from a position onward.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_CONSTANT" value="0" enum="JoyForceEffect">
+			A steady force.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_SINE" value="1" enum="JoyForceEffect">
+			A force that rises and falls in a sine wave.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_SQUARE" value="2" enum="JoyForceEffect">
+			A force that switches between two levels.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_TRIANGLE" value="3" enum="JoyForceEffect">
+			A force that rises and falls in straight lines.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_SAWTOOTH_UP" value="4" enum="JoyForceEffect">
+			A force that rises and then drops at once.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_SAWTOOTH_DOWN" value="5" enum="JoyForceEffect">
+			A force that drops and then rises at once.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_RAMP" value="6" enum="JoyForceEffect">
+			A force that moves from one level to another.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_SPRING" value="7" enum="JoyForceEffect">
+			A force that pulls back toward a center, growing with distance.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_DAMPER" value="8" enum="JoyForceEffect">
+			A force against movement, growing with speed.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_INERTIA" value="9" enum="JoyForceEffect">
+			A force against changes in speed.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_FRICTION" value="10" enum="JoyForceEffect">
+			A steady force against movement.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_LEFT_RIGHT" value="11" enum="JoyForceEffect">
+			Plain rumble on the large and small motors.
+		</constant>
+		<constant name="JOY_FORCE_EFFECT_MAX" value="12" enum="JoyForceEffect">
+			Represents the size of the [enum JoyForceEffect] enum.
 		</constant>
 	</constants>
 </class>

@@ -131,8 +131,9 @@ Vector3 NavRegion3D::get_closest_point_to_segment(const Vector3 &p_from, const V
 
 ClosestPointQueryResult NavRegion3D::get_closest_point_info(const Vector3 &p_point) const {
 	RWLockRead read_lock(region_rwlock);
+	RWLockRead iteration_read_lock(iteration_rwlock);
 
-	return NavMeshQueries3D::polygons_get_closest_point_info(get_polygons(), p_point);
+	return NavMeshQueries3D::region_iteration_get_closest_point_info(**iteration, p_point);
 }
 
 Vector3 NavRegion3D::get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const {

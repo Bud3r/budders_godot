@@ -296,50 +296,24 @@ void NavMapBuilder3D::_build_step_navlink_connections(NavMapIterationBuild3D &r_
 		const Vector3 link_start_pos = link->get_start_position();
 		const Vector3 link_end_pos = link->get_end_position();
 
-		Polygon *closest_start_polygon = nullptr;
-		real_t closest_start_sqr_dist = link_connection_radius_sqr;
-		Vector3 closest_start_point;
+		NavPolygonClosestTriangleSearch3D<true> start_search(link_start_pos, link_connection_radius_sqr);
+		NavPolygonClosestTriangleSearch3D<true> end_search(link_end_pos, link_connection_radius_sqr);
 
-		Polygon *closest_end_polygon = nullptr;
-		real_t closest_end_sqr_dist = link_connection_radius_sqr;
-		Vector3 closest_end_point;
-
-		for (const Ref<NavRegionIteration3D> &region : map_iteration->region_iterations) {
+		for (uint32_t region_index = 0; region_index < map_iteration->region_iterations.size(); region_index++) {
+			const Ref<NavRegionIteration3D> &region = map_iteration->region_iterations[region_index];
 			AABB region_bounds = region->get_bounds().grow(link_connection_radius);
 			if (!region_bounds.has_point(link_start_pos) && !region_bounds.has_point(link_end_pos)) {
 				continue;
 			}
 
-			for (Polygon &polyon : region->navmesh_polygons) {
-				for (uint32_t point_id = 2; point_id < polyon.vertices.size(); point_id += 1) {
-					const Face3 face(polyon.vertices[0], polyon.vertices[point_id - 1], polyon.vertices[point_id]);
-
-					{
-						const Vector3 start_point = face.get_closest_point_to(link_start_pos);
-						const real_t sqr_dist = start_point.distance_squared_to(link_start_pos);
-
-						// Pick the polygon that is within our radius and is closer than anything we've seen yet.
-						if (sqr_dist < closest_start_sqr_dist) {
-							closest_start_sqr_dist = sqr_dist;
-							closest_start_point = start_point;
-							closest_start_polygon = &polyon;
-						}
-					}
-
-					{
-						const Vector3 end_point = face.get_closest_point_to(link_end_pos);
-						const real_t sqr_dist = end_point.distance_squared_to(link_end_pos);
-
-						// Pick the polygon that is within our radius and is closer than anything we've seen yet.
-						if (sqr_dist < closest_end_sqr_dist) {
-							closest_end_sqr_dist = sqr_dist;
-							closest_end_point = end_point;
-							closest_end_polygon = &polyon;
-						}
-					}
-				}
-			}
+			start_search.search(region->navmesh_polygons, region->polygon_bvh, region_index);
+			end_search.search(region->navmesh_polygons, region->polygon_bvh, region_index);
 		}
+
+		Polygon *closest_start_polygon = start_search.found ? &map_iteration->region_iterations[start_search.best_region]->navmesh_polygons[start_search.best_polygon] : nullptr;
+		const Vector3 closest_start_point = start_search.best_point;
+		Polygon *closest_end_polygon = end_search.found ? &map_iteration->region_iterations[end_search.best_region]->navmesh_polygons[end_search.best_polygon] : nullptr;
+		const Vector3 closest_end_point = end_search.best_point;
 
 		// If we have both a start and end point, then create a synthetic polygon to route through.
 		if (closest_start_polygon && closest_end_polygon) {

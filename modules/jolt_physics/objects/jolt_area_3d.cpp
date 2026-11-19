@@ -296,7 +296,17 @@ void JoltArea3D::set_transform(Transform3D p_transform) {
 		jolt_settings->mPosition = to_jolt_r(p_transform.origin);
 		jolt_settings->mRotation = to_jolt(p_transform.basis);
 	} else {
-		space->get_body_iface().SetPositionAndRotation(jolt_body->GetID(), to_jolt_r(p_transform.origin), to_jolt(p_transform.basis), JPH::EActivation::DontActivate);
+		const JPH::RVec3 new_position = to_jolt_r(p_transform.origin);
+		const JPH::Quat new_rotation = to_jolt(p_transform.basis);
+
+		// Moving a node resends the transform of every area below it, even when the area ends up where it was (e.g. a `move_and_slide()` with no motion).
+		// This is the same expression Jolt stores, so equality means the update would change nothing, and we skip its broad phase update.
+		// Sensors never sleep, so not resetting the sleep timer changes nothing either.
+		if (jolt_body->GetRotation() == new_rotation && jolt_body->GetCenterOfMassPosition() == new_position + new_rotation * jolt_body->GetShape()->GetCenterOfMass()) {
+			return;
+		}
+
+		space->get_body_iface().SetPositionAndRotation(jolt_body->GetID(), new_position, new_rotation, JPH::EActivation::DontActivate);
 	}
 }
 

@@ -39,6 +39,7 @@
 #include "../shapes/jolt_shape_3d.h"
 #include "jolt_body_activation_listener_3d.h"
 #include "jolt_contact_listener_3d.h"
+#include "jolt_job_system.h"
 #include "jolt_layers.h"
 #include "jolt_physics_direct_space_state_3d.h"
 
@@ -60,6 +61,8 @@ constexpr double SPACE_DEFAULT_CONTACT_DEFAULT_BIAS = 0.8;
 constexpr double SPACE_DEFAULT_SLEEP_THRESHOLD_LINEAR = 0.1;
 constexpr double SPACE_DEFAULT_SLEEP_THRESHOLD_ANGULAR = 8.0 * Math::PI / 180;
 constexpr double SPACE_DEFAULT_SOLVER_ITERATIONS = 8;
+
+constexpr uint32_t ACTIVE_BODIES_PER_JOB = 128;
 
 } // namespace
 
@@ -109,7 +112,7 @@ void JoltSpace3D::_post_step(float p_step) {
 	}
 }
 
-JoltSpace3D::JoltSpace3D(JPH::JobSystem *p_job_system, JPH::TempAllocator *p_temp_allocator) :
+JoltSpace3D::JoltSpace3D(JoltJobSystem *p_job_system, JPH::TempAllocator *p_temp_allocator) :
 		job_system(p_job_system),
 		temp_allocator(p_temp_allocator),
 		layers(new JoltLayers()),
@@ -193,6 +196,8 @@ void JoltSpace3D::step(float p_step) {
 
 	_pre_step(p_step);
 
+	job_system->set_step_concurrency(_get_step_concurrency());
+
 	const JPH::EPhysicsUpdateError update_error = physics_system->Update(p_step, 1, temp_allocator, job_system);
 
 	if ((update_error & JPH::EPhysicsUpdateError::ManifoldCacheFull) != JPH::EPhysicsUpdateError::None) {
@@ -219,6 +224,15 @@ void JoltSpace3D::step(float p_step) {
 	_post_step(p_step);
 
 	stepping = false;
+}
+
+int JoltSpace3D::_get_step_concurrency() const {
+	// Every job handed to the WorkerThreadPool costs a wake-up and a hand-off, which in a world with little active work costs more than splitting the work saves.
+	// So scale the number of jobs with the active bodies, running small steps entirely on this thread.
+	// Leave one thread spare, since this thread runs jobs too while it waits. Jolt's results don't depend on how many jobs ran the step.
+	const uint32_t active_body_count = physics_system->GetNumActiveBodies(JPH::EBodyType::RigidBody) + physics_system->GetNumActiveBodies(JPH::EBodyType::SoftBody);
+	const int wanted = int((active_body_count + ACTIVE_BODIES_PER_JOB - 1) / ACTIVE_BODIES_PER_JOB);
+	return CLAMP(wanted, 1, MAX(1, job_system->get_thread_count() - 1));
 }
 
 void JoltSpace3D::call_queries() {

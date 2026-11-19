@@ -1188,6 +1188,8 @@ public:
 
 	PASS2(sky_set_radiance_size, RID, int)
 	PASS2(sky_set_mode, RID, RSE::SkyMode)
+	PASS2(sky_set_radiance_update_on_request, RID, bool)
+	PASS1(sky_request_radiance_update, RID)
 	PASS2(sky_set_material, RID, RID)
 	PASS4R(Ref<Image>, sky_bake_panorama, RID, float, bool, const Size2i &)
 

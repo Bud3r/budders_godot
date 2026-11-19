@@ -841,6 +841,8 @@ public:
 	FUNCRIDSPLIT(sky)
 	FUNC2(sky_set_radiance_size, RID, int)
 	FUNC2(sky_set_mode, RID, RSE::SkyMode)
+	FUNC2(sky_set_radiance_update_on_request, RID, bool)
+	FUNC1(sky_request_radiance_update, RID)
 	FUNC2(sky_set_material, RID, RID)
 	FUNC4R(Ref<Image>, sky_bake_panorama, RID, float, bool, const Size2i &)
 

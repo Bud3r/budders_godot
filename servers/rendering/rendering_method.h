@@ -133,6 +133,8 @@ public:
 
 	virtual void sky_set_radiance_size(RID p_sky, int p_radiance_size) = 0;
 	virtual void sky_set_mode(RID p_sky, RSE::SkyMode p_samples) = 0;
+	virtual void sky_set_radiance_update_on_request(RID p_sky, bool p_enable) = 0;
+	virtual void sky_request_radiance_update(RID p_sky) = 0;
 	virtual void sky_set_material(RID p_sky, RID p_material) = 0;
 	virtual Ref<Image> sky_bake_panorama(RID p_sky, float p_energy, bool p_bake_irradiance, const Size2i &p_size) = 0;
 

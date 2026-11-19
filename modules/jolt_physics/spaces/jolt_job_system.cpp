@@ -106,7 +106,7 @@ void JoltJobSystem::Job::queue() {
 }
 
 int JoltJobSystem::GetMaxConcurrency() const {
-	return thread_count;
+	return step_concurrency;
 }
 
 JPH::JobHandle JoltJobSystem::CreateJob(const char *p_name, JPH::ColorArg p_color, const JPH::JobSystem::JobFunction &p_job_function, JPH::uint32 p_dependency_count) {
@@ -138,7 +138,11 @@ JPH::JobHandle JoltJobSystem::CreateJob(const char *p_name, JPH::ColorArg p_colo
 }
 
 void JoltJobSystem::QueueJob(JPH::JobSystem::Job *p_job) {
-	static_cast<Job *>(p_job)->queue();
+	if (step_concurrency == 1) {
+		_run_inline(static_cast<Job *>(p_job));
+	} else {
+		static_cast<Job *>(p_job)->queue();
+	}
 }
 
 void JoltJobSystem::QueueJobs(JPH::JobSystem::Job **p_jobs, JPH::uint p_job_count) {
@@ -151,6 +155,26 @@ void JoltJobSystem::FreeJob(JPH::JobSystem::Job *p_job) {
 	Job::push_completed(static_cast<Job *>(p_job));
 }
 
+void JoltJobSystem::_run_inline(Job *p_job) {
+	// Jobs queued while another one runs wait their turn instead of nesting, so the stack stays flat and each job's timing is its own.
+	p_job->AddRef();
+	inline_queue.push_back(p_job);
+
+	if (draining_inline_queue) {
+		return;
+	}
+
+	draining_inline_queue = true;
+
+	while (inline_queue_head < inline_queue.size()) {
+		Job::_execute(inline_queue[inline_queue_head++]);
+	}
+
+	inline_queue.clear();
+	inline_queue_head = 0;
+	draining_inline_queue = false;
+}
+
 void JoltJobSystem::_reclaim_jobs() {
 	while (Job *job = Job::pop_completed()) {
 		jobs.DestructObject(job);
@@ -159,15 +183,22 @@ void JoltJobSystem::_reclaim_jobs() {
 
 JoltJobSystem::JoltJobSystem() :
 		JPH::JobSystemWithBarrier(JPH::cMaxPhysicsBarriers),
-		thread_count(MAX(1, WorkerThreadPool::get_singleton()->get_thread_count())) {
+		thread_count(MAX(1, WorkerThreadPool::get_singleton()->get_thread_count())),
+		step_concurrency(thread_count) {
 	jobs.Init(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsJobs);
 }
 
+void JoltJobSystem::set_step_concurrency(int p_concurrency) {
+	DEV_ASSERT(!draining_inline_queue);
+	step_concurrency = CLAMP(p_concurrency, 1, thread_count);
+}
+
 void JoltJobSystem::pre_step() {
-	// Nothing to do.
+	step_concurrency = thread_count;
 }
 
 void JoltJobSystem::post_step() {
+	step_concurrency = thread_count;
 	_reclaim_jobs();
 }
 

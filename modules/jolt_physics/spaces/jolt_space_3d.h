@@ -46,6 +46,7 @@ class JoltArea3D;
 class JoltBody3D;
 class JoltBodyActivationListener3D;
 class JoltContactListener3D;
+class JoltJobSystem;
 class JoltJoint3D;
 class JoltLayers;
 class JoltObject3D;
@@ -67,7 +68,7 @@ class JoltSpace3D {
 
 	RID rid;
 
-	JPH::JobSystem *job_system = nullptr;
+	JoltJobSystem *job_system = nullptr;
 	JPH::TempAllocator *temp_allocator = nullptr;
 	JoltLayers *layers = nullptr;
 	JoltContactListener3D *contact_listener = nullptr;
@@ -84,10 +85,11 @@ class JoltSpace3D {
 	bool stepping = false;
 
 	void _pre_step(float p_step);
+	int _get_step_concurrency() const;
 	void _post_step(float p_step);
 
 public:
-	explicit JoltSpace3D(JPH::JobSystem *p_job_system, JPH::TempAllocator *p_temp_allocator);
+	explicit JoltSpace3D(JoltJobSystem *p_job_system, JPH::TempAllocator *p_temp_allocator);
 	~JoltSpace3D();
 
 	void step(float p_step);

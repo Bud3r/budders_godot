@@ -32,6 +32,7 @@
 
 #include "core/os/spin_lock.h"
 #include "core/templates/hash_map.h"
+#include "core/templates/local_vector.h"
 
 #include <Jolt/Jolt.h>
 
@@ -42,6 +43,8 @@
 
 class JoltJobSystem final : public JPH::JobSystemWithBarrier {
 	class Job : public JPH::JobSystem::Job {
+		friend class JoltJobSystem;
+
 		inline static std::atomic<Job *> completed_head = nullptr;
 
 #ifdef DEBUG_ENABLED
@@ -80,7 +83,13 @@ class JoltJobSystem final : public JPH::JobSystemWithBarrier {
 
 	JPH::FixedSizeFreeList<Job> jobs;
 
+	LocalVector<Job *> inline_queue;
+	uint32_t inline_queue_head = 0;
+
 	int thread_count = 0;
+	int step_concurrency = 0;
+
+	bool draining_inline_queue = false;
 
 	virtual int GetMaxConcurrency() const override;
 
@@ -90,9 +99,15 @@ class JoltJobSystem final : public JPH::JobSystemWithBarrier {
 	virtual void FreeJob(JPH::JobSystem::Job *p_job) override;
 
 	void _reclaim_jobs();
+	void _run_inline(Job *p_job);
 
 public:
 	JoltJobSystem();
+
+	int get_thread_count() const { return thread_count; }
+
+	// How many jobs Jolt may run at once during the coming step. At 1, every job runs on the calling thread instead of going through the WorkerThreadPool.
+	void set_step_concurrency(int p_concurrency);
 
 	void pre_step();
 	void post_step();

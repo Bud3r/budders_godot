@@ -1032,7 +1032,7 @@ void SkyRD::setup_sky(const RenderDataRD *p_render_data, const Size2i p_screen_s
 
 		if (shader_data->uses_time && p_render_data->scene_data->time - sky->prev_time > 0.00001) {
 			sky->prev_time = p_render_data->scene_data->time;
-			sky->reflection.dirty = true;
+			_radiance_inputs_changed(sky);
 			RenderingServerDefault::redraw_request();
 		}
 
@@ -1041,14 +1041,19 @@ void SkyRD::setup_sky(const RenderDataRD *p_render_data, const Size2i p_screen_s
 			sky->reflection.dirty = true;
 		}
 
+		if (sky->radiance_update_requested) {
+			sky->radiance_update_requested = false;
+			sky->reflection.dirty = true;
+		}
+
 		if (material->uniform_set_updated) {
 			material->uniform_set_updated = false;
-			sky->reflection.dirty = true;
+			_radiance_inputs_changed(sky);
 		}
 
 		if (!p_render_data->scene_data->cam_transform.origin.is_equal_approx(sky->prev_position) && shader_data->uses_position) {
 			sky->prev_position = p_render_data->scene_data->cam_transform.origin;
-			sky->reflection.dirty = true;
+			_radiance_inputs_changed(sky);
 		}
 	}
 
@@ -1143,7 +1148,7 @@ void SkyRD::setup_sky(const RenderDataRD *p_render_data, const Size2i p_screen_s
 			sky_scene_state.directional_lights = temp;
 			sky_scene_state.last_frame_directional_light_count = sky_scene_state.ubo.directional_light_count;
 			if (sky) {
-				sky->reflection.dirty = true;
+				_radiance_inputs_changed(sky);
 			}
 		}
 	}
@@ -1523,6 +1528,12 @@ void SkyRD::draw_sky(RD::DrawListID p_draw_list, Ref<RenderSceneBuffersRD> p_ren
 	_render_sky(p_draw_list, p_time, p_fb, pipeline, material->uniform_set, texture_uniform_set, projection, sky_transform, sky_scene_state.cam_transform.origin, p_luminance_multiplier, p_brightness_multiplier, border_size);
 }
 
+void SkyRD::_radiance_inputs_changed(Sky *p_sky) {
+	if (!p_sky->radiance_on_request) {
+		p_sky->reflection.dirty = true;
+	}
+}
+
 void SkyRD::invalidate_sky(Sky *p_sky) {
 	if (!p_sky->dirty) {
 		p_sky->dirty = true;
@@ -1667,6 +1678,25 @@ void SkyRD::sky_set_mode(RID p_sky, RSE::SkyMode p_mode) {
 	if (sky->set_mode(p_mode)) {
 		invalidate_sky(sky);
 	}
+}
+
+void SkyRD::sky_set_radiance_update_on_request(RID p_sky, bool p_enable) {
+	Sky *sky = get_sky(p_sky);
+	ERR_FAIL_NULL(sky);
+
+	if (sky->radiance_on_request == p_enable) {
+		return;
+	}
+	sky->radiance_on_request = p_enable;
+	// Changes made while it was on were never drawn.
+	sky->radiance_update_requested = true;
+}
+
+void SkyRD::sky_request_radiance_update(RID p_sky) {
+	Sky *sky = get_sky(p_sky);
+	ERR_FAIL_NULL(sky);
+
+	sky->radiance_update_requested = true;
 }
 
 void SkyRD::sky_set_material(RID p_sky, RID p_material) {

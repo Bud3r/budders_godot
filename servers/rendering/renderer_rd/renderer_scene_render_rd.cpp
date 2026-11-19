@@ -71,6 +71,14 @@ void RendererSceneRenderRD::sky_set_mode(RID p_sky, RSE::SkyMode p_mode) {
 	sky.sky_set_mode(p_sky, p_mode);
 }
 
+void RendererSceneRenderRD::sky_set_radiance_update_on_request(RID p_sky, bool p_enable) {
+	sky.sky_set_radiance_update_on_request(p_sky, p_enable);
+}
+
+void RendererSceneRenderRD::sky_request_radiance_update(RID p_sky) {
+	sky.sky_request_radiance_update(p_sky);
+}
+
 void RendererSceneRenderRD::sky_set_material(RID p_sky, RID p_material) {
 	sky.sky_set_material(p_sky, p_material);
 }

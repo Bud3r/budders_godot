@@ -3023,6 +3023,8 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("sky_create"), &RenderingServer::sky_create);
 	ClassDB::bind_method(D_METHOD("sky_set_radiance_size", "sky", "radiance_size"), &RenderingServer::sky_set_radiance_size);
 	ClassDB::bind_method(D_METHOD("sky_set_mode", "sky", "mode"), &RenderingServer::sky_set_mode);
+	ClassDB::bind_method(D_METHOD("sky_set_radiance_update_on_request", "sky", "enable"), &RenderingServer::sky_set_radiance_update_on_request);
+	ClassDB::bind_method(D_METHOD("sky_request_radiance_update", "sky"), &RenderingServer::sky_request_radiance_update);
 	ClassDB::bind_method(D_METHOD("sky_set_material", "sky", "material"), &RenderingServer::sky_set_material);
 	ClassDB::bind_method(D_METHOD("sky_bake_panorama", "sky", "energy", "bake_irradiance", "size"), &RenderingServer::sky_bake_panorama);
 

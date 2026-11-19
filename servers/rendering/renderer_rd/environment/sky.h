@@ -264,6 +264,10 @@ public:
 		RSE::SkyMode mode = RSE::SKY_MODE_AUTOMATIC;
 		RSE::SkyMode internal_mode = RSE::SKY_MODE_INCREMENTAL; // When using SKY_MODE_AUTOMATIC, this is the mode used internally.
 
+		// When on, changes to the lights or the material leave the radiance as it is until a rebuild is requested.
+		bool radiance_on_request = false;
+		bool radiance_update_requested = false;
+
 		ReflectionData reflection;
 		bool dirty = false;
 		int processing_layer = 0;
@@ -308,6 +312,7 @@ public:
 	void update_res_buffers(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_env, double p_time, float p_luminance_multiplier = 1.0, float p_brightness_multiplier = 1.0);
 	void draw_sky(RD::DrawListID p_draw_list, Ref<RenderSceneBuffersRD> p_render_buffers, RID p_env, RID p_fb, double p_time, float p_luminance_multiplier = 1.0, float p_brightness_multiplier = 1.0);
 
+	static void _radiance_inputs_changed(Sky *p_sky);
 	void invalidate_sky(Sky *p_sky);
 	void update_dirty_skys();
 
@@ -322,6 +327,8 @@ public:
 	void sky_set_radiance_size(RID p_sky, int p_radiance_size);
 	int sky_get_radiance_size(RID p_sky) const;
 	void sky_set_mode(RID p_sky, RSE::SkyMode p_mode);
+	void sky_set_radiance_update_on_request(RID p_sky, bool p_enable);
+	void sky_request_radiance_update(RID p_sky);
 	void sky_set_material(RID p_sky, RID p_material);
 	Ref<Image> sky_bake_panorama(RID p_sky, float p_energy, bool p_bake_irradiance, const Size2i &p_size);
 	float sky_get_uv_border_size(RID p_sky);

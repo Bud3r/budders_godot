@@ -3756,6 +3756,13 @@
 				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] method.
 			</description>
 		</method>
+		<method name="sky_request_radiance_update">
+			<return type="void" />
+			<param index="0" name="sky" type="RID" />
+			<description>
+				Rebuilds the radiance map of the sky specified by the [param sky] RID on the next frame it is drawn. Equivalent to [method Sky.request_radiance_update].
+			</description>
+		</method>
 		<method name="sky_set_material">
 			<return type="void" />
 			<param index="0" name="sky" type="RID" />
@@ -3778,6 +3785,14 @@
 			<param index="1" name="radiance_size" type="int" />
 			<description>
 				Sets the [param radiance_size] of the sky specified by the [param sky] RID (in pixels). Equivalent to [member Sky.radiance_size].
+			</description>
+		</method>
+		<method name="sky_set_radiance_update_on_request">
+			<return type="void" />
+			<param index="0" name="sky" type="RID" />
+			<param index="1" name="enable" type="bool" />
+			<description>
+				If [param enable] is [code]true[/code], the radiance map of the sky specified by the [param sky] RID is only rebuilt when [method sky_request_radiance_update] is called. Equivalent to [member Sky.radiance_update_mode].
 			</description>
 		</method>
 		<method name="spot_light_create">
